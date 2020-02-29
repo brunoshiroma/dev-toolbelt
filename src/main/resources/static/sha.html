@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <title>Devtoolbelt - SHA</title>
+    <link rel="manifest" href="/manifest.json">
+</head>
+<body>
+
+<table>
+    <thead>
+    <tr>
+        <td>Data</td>
+        <td>Algorithm</td>
+        <td>Hash</td>
+    </tr>
+    </thead>
+    <tbody>
+    <tr>
+        <td><input id="sha-data"></td>
+        <td><select id="sha-alg">
+            <option value="SHA-1">SHA-1</option>
+            <option value="SHA-256">SHA-256</option>
+            <option value="SHA-386">SHA-386</option>
+            <option value="SHA-512" selected>SHA-512</option>
+        </select></td>
+        <td><input id="sha-hash" disabled></td>
+    </tr>
+    <tr aria-colspan="2">
+        <td>
+            <input type="button" value="Hash" onclick="hash();">
+        </td>
+    </tr>
+    </tbody>
+</table>
+
+<script src="js/common.js"></script>
+<script src="js/sha.js"></script>
+<script>
+    async function hash(){
+        let dataField = byId('sha-data');
+        let hashField = byId('sha-hash');
+        let algField = byId('sha-alg');
+
+        let hashData = await digestMessage(dataField.value, algField.value);
+        hashField.value = hashData;
+    }
+</script>
+
+</body>
+</html>
