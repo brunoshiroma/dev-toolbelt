@@ -9,8 +9,10 @@ const FILES_TO_CACHE = [
     "/index.html",
     "/offline.html",
     "/sha.html",
+    "/password.html",
     "/js/common.js",
-    "/js/sha.js"
+    "/js/sha.js",
+    "/js/password.js"
 ];
 
 self.addEventListener('install', (evt) => {
