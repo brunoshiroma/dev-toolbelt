@@ -13,7 +13,9 @@ const FILES_TO_CACHE = [
     "/js/common.js",
     "/js/sha.js",
     "/js/password.js",
-    "/js/jquery-3.5.1.min.js"
+    "/js/jquery-3.5.1.min.js",
+    "/js/bootstrap.min.js",
+    "/css/bootstrap.min.css"
 ];
 
 self.addEventListener('install', (evt) => {
