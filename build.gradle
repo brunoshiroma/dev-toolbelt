@@ -37,10 +37,15 @@ test {
 
 compileJava{
 	doFirst {
+		//generate property on application.properties with timestamp, for use on spring
 		def propertyFile = file "src/main/resources/application.properties"
 		def props = new Properties()
 		propertyFile.withReader { props.load(it) }
 		props.setProperty('release-date', new Date().format('yyyyMMdd-HHmmss'))
 		propertyFile.withWriter { props.store(it, null) }
+
+		//update the heroku procfile with version from this file
+		new File(projectDir, "Procfile").text = "web: java -jar build/libs/devtoolbelt-${version}.jar"
+
 	}
 }
