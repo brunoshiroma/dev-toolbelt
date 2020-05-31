@@ -1,7 +1,7 @@
 'use strict';
 
 // CODELAB: Update cache names any time any of the cached files change.
-const CACHE_NAME = 'static-cache-v1';
+const CACHE_NAME = 'static-cache-v0-1-1';
 
 // CODELAB: Add list of files to cache here.
 const FILES_TO_CACHE = [
@@ -23,18 +23,31 @@ self.addEventListener('install', (evt) => {
   self.skipWaiting();
 
   evt.waitUntil(
-      caches.open(CACHE_NAME).then((cache) => {
+      caches
+      .open(CACHE_NAME)
+      .then((cache) => {
         console.log('[ServiceWorker] Pre-caching offline page');
         return cache.addAll(FILES_TO_CACHE);
+      })
+      .catch((e)=>{
+        console.log(e);
       })
   );
 });
 
-self.addEventListener('activate', (evt) => {
-  console.log('[ServiceWorker] Activate');
-  // CODELAB: Remove previous cached data from disk.
-
-  //self.clients.claim();
+//https://developers.google.com/web/ilt/pwa/caching-files-with-service-worker
+self.addEventListener('activate', function(event) {
+  event.waitUntil(
+    caches.keys().then(function(cacheNames) {
+      return Promise.all(
+        cacheNames.filter(function(cacheName) {
+            return cacheName !== CACHE_NAME;
+        }).map(function(cacheName) {
+          return caches.delete(cacheName);
+        })
+      );
+    })
+  );
 });
 
 self.addEventListener('sync', (evt) => {
