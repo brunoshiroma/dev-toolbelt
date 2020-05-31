@@ -1,15 +1,14 @@
 'use strict';
 
 // CODELAB: Update cache names any time any of the cached files change.
-const CACHE_NAME = 'static-cache-v0-1-1';
+const CACHE_NAME = '[( ${CACHE_VERSION} )]';
 
 // CODELAB: Add list of files to cache here.
 const FILES_TO_CACHE = [
     "/",
-    "/index.html",
-    "/offline.html",
-    "/sha.html",
-    "/password.html",
+    "/offline",
+    "/sha",
+    "/password",
     "/js/common.js",
     "/js/sha.js",
     "/js/password.js",
@@ -41,7 +40,7 @@ self.addEventListener('activate', function(event) {
     caches.keys().then(function(cacheNames) {
       return Promise.all(
         cacheNames.filter(function(cacheName) {
-            return cacheName !== CACHE_NAME;
+            return cacheName != CACHE_NAME;
         }).map(function(cacheName) {
           return caches.delete(cacheName);
         })
@@ -64,7 +63,7 @@ self.addEventListener('fetch', (evt) => {
        .catch((e) => {
          return caches.open(CACHE_NAME)
              .then((cache) => {
-               return cache.match('/offline.html');
+               return cache.match('/offline');
              });
        });
      })

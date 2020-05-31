@@ -5,7 +5,7 @@ plugins {
 }
 
 group = 'com.brunoshiroma'
-version = '0.0.1-SNAPSHOT'
+version = '0.1.1-SNAPSHOT'
 sourceCompatibility = '14'
 
 configurations {
@@ -21,8 +21,10 @@ repositories {
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
 
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
 	testImplementation('org.springframework.boot:spring-boot-starter-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
@@ -31,4 +33,14 @@ dependencies {
 
 test {
 	useJUnitPlatform()
+}
+
+compileJava{
+	doFirst {
+		def propertyFile = file "src/main/resources/application.properties"
+		def props = new Properties()
+		propertyFile.withReader { props.load(it) }
+		props.setProperty('release-date', new Date().format('yyyyMMdd-HHmmss'))
+		propertyFile.withWriter { props.store(it, null) }
+	}
 }
