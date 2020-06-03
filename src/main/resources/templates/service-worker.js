@@ -1,6 +1,6 @@
 'use strict';
 
-// CODELAB: Update cache names any time any of the cached files change.
+// thyleaf set with timestamp, on application.properties, created on build.gradle
 const CACHE_NAME = '[( ${CACHE_VERSION} )]';
 
 // CODELAB: Add list of files to cache here.
