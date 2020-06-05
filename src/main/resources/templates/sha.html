@@ -1,31 +1,42 @@
 <meta th:replace="fragments/base_html_top.html">
 
-<table>
-    <thead>
-    <tr>
-        <td>Data</td>
-        <td>Algorithm</td>
-        <td>Hash</td>
-    </tr>
-    </thead>
-    <tbody>
-    <tr>
-        <td><input id="sha-data"></td>
-        <td><select id="sha-alg">
-            <option value="SHA-1">SHA-1</option>
-            <option value="SHA-256">SHA-256</option>
-            <option value="SHA-386">SHA-386</option>
-            <option value="SHA-512" selected>SHA-512</option>
-        </select></td>
-        <td><input id="sha-hash" disabled></td>
-    </tr>
-    <tr aria-colspan="2">
-        <td>
-            <input type="button" value="Hash" onclick="hash();">
-        </td>
-    </tr>
-    </tbody>
-</table>
+<div class="container-fluid h-25 pt-3">
+        <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label for="sha-data">Data</label>
+                    <input id="sha-data" class="w-100">
+                </div>
+            </div>
+        </div>
+        <div class="row">
+            <div class="col">
+                <div class="form-group">
+                    <label for="sha-alg">Algorithm</label>
+                    <select id="sha-alg">
+                        <option value="SHA-1">SHA-1</option>
+                        <option value="SHA-256">SHA-256</option>
+                        <option value="SHA-386">SHA-386</option>
+                        <option value="SHA-512" selected>SHA-512</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+        <div class="row h-100">
+            <div class="col">
+                 <textarea id="sha-hash" disabled class="h-100 w-100">
+                 </textarea>
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col">
+                <button onclick="hash();" type="button" class="btn btn-primary m-1">
+                    Hash
+                </button>
+            </div>
+        </div>
+</div>
 
 <script src="js/common.js"></script>
 <script src="js/sha.js"></script>
