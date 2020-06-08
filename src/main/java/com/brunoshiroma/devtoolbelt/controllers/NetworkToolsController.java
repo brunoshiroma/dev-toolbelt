@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import javax.servlet.http.HttpServletRequest;
 
 @Controller
-public class NetworkToolsController {
+public class NetworkToolsController extends AbstractController{
 
     private final NetworkToolsService networkToolsService;
 
@@ -26,7 +26,10 @@ public class NetworkToolsController {
 
     @GetMapping(value = "/ip")
     public String getClientIpHTML(HttpServletRequest request, Model model){
+        setUpModel(model);
         model.addAttribute("clientIp", networkToolsService.getClientIp(request));
+        model.addAttribute(HTML_TITLE, " - Your IP");
+        model.addAttribute(HTML_DESCRIPTION, "Check your public IP.");
         return "ip.html";
     }
 

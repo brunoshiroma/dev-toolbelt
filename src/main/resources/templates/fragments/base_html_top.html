@@ -1,9 +1,12 @@
 <!DOCTYPE html>
 <html lang="en" xmlns:th="http://www.thymeleaf.org" class="h-100">
 <head>
-    <title>Devtoolbelt</title>
+    <title>Devtoolbelt[( ${htmlTitle} )]</title>
+    <meta name="description" th:attr="content=${htmlDescription}">
+    <meta name="author" content="Bruno Shiroma">
     <meta th:replace="fragments/header.html">
+    <link rel="stylesheet" href="css/bootstrap.min.css">
 </head>
 <body class="h-100">
-
+<div class="d-flex flex-column h-100 w-100">
 <meta th:replace="fragments/nav_bar.html">

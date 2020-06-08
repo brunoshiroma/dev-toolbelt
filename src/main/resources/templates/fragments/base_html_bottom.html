@@ -1,4 +1,10 @@
-<link rel="stylesheet" href="css/bootstrap.min.css">
+<footer th:if="${changeYear == '2020'}" class="mt-auto text-center">Bruno Shiroma - 2020</footer>
+<footer th:unless="${changeYear == '2020'}" class="mt-auto text-center">Bruno Shiroma - 2020 - [( ${changeYear} )] </footer>
+
+</div>
+<!-- CLOSING TAG OPEN ON base_html_top.html d-flex -->
+
+
 <script src="js/jquery-3.5.1.min.js"></script>
 <script src="js/bootstrap.min.js"></script>
 
@@ -14,6 +20,7 @@ if ('serviceWorker' in navigator) {
 }
 
 </script>
+
 
 </body>
 </html>
