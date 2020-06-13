@@ -7,4 +7,29 @@
     </article>
 </main>
 
+<!-- FIREBASE TRACKING ONLY ON INDEX FOR USAGE TRACKER BUT NOT SO MUCH !!! -->
+<!-- The core Firebase JS SDK is always required and must be listed first -->
+<script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-app.js"></script>
+
+<!-- TODO: Add SDKs for Firebase products that you want to use
+     https://firebase.google.com/docs/web/setup#available-libraries -->
+<script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-analytics.js"></script>
+
+<script>
+  // Your web app's Firebase configuration
+  var firebaseConfig = {
+    apiKey: "AIzaSyBZre_h_CuLHu_rwlkn7YXPZI_Q_Dh3QtQ",
+    authDomain: "dev-toolbelt.firebaseapp.com",
+    databaseURL: "https://dev-toolbelt.firebaseio.com",
+    projectId: "dev-toolbelt",
+    storageBucket: "dev-toolbelt.appspot.com",
+    messagingSenderId: "466638317903",
+    appId: "1:466638317903:web:4defdaa2f69ce719e0bd3a",
+    measurementId: "G-LY3WNPM7ZM"
+  };
+  // Initialize Firebase
+  firebase.initializeApp(firebaseConfig);
+  firebase.analytics();
+</script>
+
 <meta th:replace="fragments/base_html_bottom.html">
