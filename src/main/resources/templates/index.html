@@ -14,6 +14,8 @@
 <!-- TODO: Add SDKs for Firebase products that you want to use
      https://firebase.google.com/docs/web/setup#available-libraries -->
 <script src="https://www.gstatic.com/firebasejs/7.15.1/firebase-analytics.js"></script>
+<script async src="https://www.googletagmanager.com/gtag/js"></script>
+
 
 <script>
   // Your web app's Firebase configuration
@@ -30,6 +32,7 @@
   // Initialize Firebase
   firebase.initializeApp(firebaseConfig);
   firebase.analytics();
+  firebase.analytics().logEvent('index');
 </script>
 
 <meta th:replace="fragments/base_html_bottom.html">
