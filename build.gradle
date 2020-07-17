@@ -35,6 +35,11 @@ test {
 	useJUnitPlatform()
 }
 
+task buildGitHubActions{
+	version = ""
+	finalizedBy clean, build
+}
+
 compileJava{
 	doFirst {
 		//generate property on application.properties with timestamp, for use on spring
