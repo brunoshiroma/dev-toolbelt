@@ -36,8 +36,10 @@ test {
 }
 
 task buildGitHubActions{
-	version = ""
-	finalizedBy clean, build
+	doLast {
+		version = ""
+	}
+	finalizedBy build
 }
 
 compileJava{
