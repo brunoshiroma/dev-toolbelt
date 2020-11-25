@@ -1,6 +1,6 @@
 package com.brunoshiroma.devtoolbelt.controllers;
 
-import org.springframework.beans.factory.annotation.Value;
+import com.brunoshiroma.devtoolbelt.config.DevtoolbeltConfigBean;
 import org.springframework.ui.Model;
 
 import java.text.ParseException;
@@ -11,23 +11,26 @@ import java.util.logging.Logger;
 
 public abstract class AbstractController {
 
+    private final DevtoolbeltConfigBean configBean;
+
     protected final SimpleDateFormat releaseDateParser = new SimpleDateFormat("yyyyMMdd-HHmmss");
 
     public static final String HTML_TITLE = "htmlTitle";
 
     public static final String HTML_DESCRIPTION = "htmlDescription";
 
-    @Value("${release-date}")
-    protected String releaseDate;
+    protected AbstractController(DevtoolbeltConfigBean configBean) {
+        this.configBean = configBean;
+    }
 
     protected void setUpModel(Model model){
         try {
-            Date lastChangeDate = releaseDateParser.parse(releaseDate);
+            Date lastChangeDate = releaseDateParser.parse(configBean.getRelease());
             Calendar lastChangeCal = Calendar.getInstance();
             lastChangeCal.setTime(lastChangeDate);
 
             model.addAttribute("changeYear", String.valueOf(lastChangeCal.get(Calendar.YEAR)));
-            model.addAttribute("CACHE_VERSION", releaseDate);
+            model.addAttribute("CACHE_VERSION", configBean.getRelease());
         } catch (ParseException e) {
             Logger.getGlobal().throwing("StaticController", "setUpModel", e);
         }

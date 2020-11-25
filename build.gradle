@@ -1,12 +1,12 @@
 plugins {
-	id 'org.springframework.boot' version '2.3.0.RELEASE'
-	id 'io.spring.dependency-management' version '1.0.9.RELEASE'
+	id 'org.springframework.boot' version '2.4.0'
+	id 'io.spring.dependency-management' version '1.0.10.RELEASE'
 	id 'java'
 }
 
 group = 'com.brunoshiroma'
 version = '0.1.1-SNAPSHOT'
-sourceCompatibility = '14'
+sourceCompatibility = '11'
 
 configurations {
 	developmentOnly
@@ -17,11 +17,18 @@ configurations {
 
 repositories {
 	mavenCentral()
+	maven{
+		url 'https://repo.spring.io/milestone'
+	}
 }
 
 dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.springframework.boot:spring-boot-starter-thymeleaf'
+
+	implementation 'org.springframework.experimental:spring-graalvm-native:0.8.3'
+
+	implementation 'org.springframework:spring-context-indexer'
 
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 
@@ -48,11 +55,25 @@ compileJava{
 		def propertyFile = file "src/main/resources/application.properties"
 		def props = new Properties()
 		propertyFile.withReader { props.load(it) }
-		props.setProperty('release-date', new Date().format('yyyyMMdd-HHmmss'))
+		props.setProperty('release', new Date().format('yyyyMMdd-HHmmss'))
 		propertyFile.withWriter { props.store(it, null) }
 
 		//update the heroku procfile with version from this file
 		new File(projectDir, "Procfile").text = "web: java -jar build/libs/devtoolbelt-${version}.jar"
 
 	}
+}
+
+tasks.getByName("bootBuildImage"){
+	builder = "paketobuildpacks/builder:tiny"
+	environment = [
+			"BP_BOOT_NATIVE_IMAGE" : "1",
+			"BP_BOOT_NATIVE_IMAGE_BUILD_ARGUMENTS" : """
+                -Dspring.native.remove-yaml-support=true
+                -H:IncludeResources='templates/.*'
+                -H:IncludeResources='static/.*'
+                -H:IncludeResources='application.*properties\$'
+                -H:Log=registerResource:verbose
+            """.trim()
+	]
 }

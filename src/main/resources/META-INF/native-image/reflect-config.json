@@ -1,0 +1,7 @@
+[
+  {
+    "name": "org.apache.catalina.connector.RequestFacade",
+    "allDeclaredConstructors": true,
+    "allDeclaredMethods": true
+  }
+]
