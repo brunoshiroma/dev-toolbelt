@@ -36,6 +36,22 @@ public class StaticController extends AbstractController {
         return "sha.html";
     }
 
+    @GetMapping("/base64")
+    public String base64(Model model){
+        setUpModel(model);
+        model.addAttribute(HTML_TITLE, " - Base64");
+        model.addAttribute(HTML_DESCRIPTION, "Encode or decode base64 on your browser, secure without network activity.");
+        return "base64.html";
+    }
+
+    @GetMapping("/url-encode")
+    public String urlEncode(Model model){
+        setUpModel(model);
+        model.addAttribute(HTML_TITLE, " - URL encode");
+        model.addAttribute(HTML_DESCRIPTION, "Encode or decode URL params on your browser, secure without network activity.");
+        return "url-encode.html";
+    }
+
     @GetMapping("/offline")
     public String offline(Model model){
         setUpModel(model);

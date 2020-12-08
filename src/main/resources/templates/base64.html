@@ -1,0 +1,57 @@
+<meta th:replace="fragments/base_html_top.html">
+
+<main role="main" class="container-fluid h-25 pt-3">
+    <div class="row">
+        <div class="col">
+            <div class="form-group">
+                <label for="base64-input">Data</label>
+                <textarea id="base64-input" class="h-100 w-100"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="form-group">
+                <label for="base64-operation">Operation</label>
+                <select id="base64-operation">
+                    <option value="encode">Encode</option>
+                    <option value="decode">Decode</option>
+                </select>
+            </div>
+        </div>
+    </div>
+    <div class="row h-100">
+        <div class="col">
+                 <textarea id="base64-output" disabled class="h-100 w-100"></textarea>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col">
+            <button onclick="base64();" type="button" class="btn btn-primary m-1">
+                Base64
+            </button>
+        </div>
+    </div>
+</main>
+
+<script src="js/common.js"></script>
+<script src="js/base64.js"></script>
+<script>
+    async function base64(){
+        let inField = byId('base64-input');
+        let operationField = byId('base64-operation');
+        let outField = byId('base64-output');
+
+        let base64Data;
+        if(operationField.value === 'encode'){
+            base64Data = btoa(inField.value);
+        } else{
+            base64Data = atob(inField.value);
+        }
+
+        outField.value = base64Data;
+    }
+</script>
+
+<meta th:replace="fragments/base_html_bottom.html">

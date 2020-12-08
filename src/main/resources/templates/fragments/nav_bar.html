@@ -7,6 +7,8 @@
     <div class="collapse navbar-collapse" id="navbarNavAltMarkup">
         <div class="navbar-nav">
             <a class="nav-item nav-link" th:classappend="${#httpServletRequest.requestURI == '/ip'} ? active : ''" href="/ip">IP</a>
+            <a class="nav-item nav-link" th:classappend="${#httpServletRequest.requestURI == '/base64'} ? active : ''" href="/base64">Base64</a>
+            <a class="nav-item nav-link" th:classappend="${#httpServletRequest.requestURI == '/url-encode'} ? active : ''" href="/url-encode">URL Encode</a>
             <a class="nav-item nav-link" th:classappend="${#httpServletRequest.requestURI == '/sha'} ? active : ''" href="/sha">SHA</a>
             <a class="nav-item nav-link" th:classappend="${#httpServletRequest.requestURI == '/password'} ? active : ''" href="/password">Password</a>
         </div>
