@@ -9,6 +9,8 @@ const FILES_TO_CACHE = [
     "/offline",
     "/sha",
     "/password",
+    "/url-encode",
+    "/base64"
     "/js/common.js",
     "/js/sha.js",
     "/js/password.js",
