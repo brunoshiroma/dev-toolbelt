@@ -1,5 +1,3 @@
-'use strict';
-
 // thyleaf set with timestamp, on application.properties, created on build.gradle
 const CACHE_NAME = '[( ${CACHE_VERSION} )]';
 
