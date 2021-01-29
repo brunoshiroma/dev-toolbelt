@@ -1,3 +1,5 @@
+'use strict';
+
 // thyleaf set with timestamp, on application.properties, created on build.gradle
 const CACHE_NAME = '[( ${CACHE_VERSION} )]';
 
@@ -8,7 +10,7 @@ const FILES_TO_CACHE = [
     "/sha",
     "/password",
     "/url-encode",
-    "/base64"
+    "/base64",
     "/js/common.js",
     "/js/sha.js",
     "/js/password.js",
