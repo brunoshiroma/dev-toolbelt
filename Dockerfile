@@ -41,8 +41,7 @@ RUN ./gradlew nativeBuild
 
 RUN mkdir empty
 
-FROM scratch as runtime
+FROM debian:11-slim as runtime
 WORKDIR /app
 COPY --from=builder /app/build/native/nativeBuild/devtoolbelt /app/dev-toolbelt
-COPY --from=builder /app/empty /tmp
 ENTRYPOINT ["/app/dev-toolbelt"]
