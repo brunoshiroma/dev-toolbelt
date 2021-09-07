@@ -1,9 +1,9 @@
 plugins {
-	id 'org.springframework.boot' version '2.5.1'
+	id 'org.springframework.boot' version '2.5.4'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
-	id 'org.springframework.experimental.aot' version '0.10.0'
-	id 'org.graalvm.buildtools.native' version '0.9.0'
+	id 'org.springframework.experimental.aot' version '0.10.3'
+	id 'org.graalvm.buildtools.native' version '0.9.3'
 }
 
 group = 'com.brunoshiroma'
@@ -61,24 +61,36 @@ compileJava{
 	}
 }
 
-tasks.getByName("bootBuildImage"){
-	builder = "paketobuildpacks/builder:tiny"
-	environment = [
-			"BP_BOOT_NATIVE_IMAGE" : "1",
-			"BP_BOOT_NATIVE_IMAGE_BUILD_ARGUMENTS" : """
-				--static 
-				--libc=musl
-                -Dspring.native.remove-yaml-support=true
-                -H:IncludeResources='templates/.*'
-                -H:IncludeResources='static/.*'
-                -H:IncludeResources='application.*properties\$'
-                -H:Log=registerResource:verbose
-            """.trim()
-	]
-}
-
+//tasks.getByName("bootBuildImage"){
+//	builder = "paketobuildpacks/builder:tiny"
+//	environment = [
+//			"BP_BOOT_NATIVE_IMAGE" : "1",
+//			"BP_BOOT_NATIVE_IMAGE_BUILD_ARGUMENTS" : """
+//				-H:+StaticExecutableWithDynamicLibC
+//                -Dspring.native.remove-yaml-support=true
+//                -H:IncludeResources='templates/.*'
+//                -H:IncludeResources='static/.*'
+//                -H:IncludeResources='application.*properties\$'
+//                -H:Log=registerResource:verbose
+//            """.trim()
+//	]
+//}
+//
+//
+//bootBuildImage {
+//	builder = 'paketobuildpacks/builder:tiny'
+//	environment = ['BP_NATIVE_IMAGE': 'true']
+//}
 
 bootBuildImage {
 	builder = 'paketobuildpacks/builder:tiny'
 	environment = ['BP_NATIVE_IMAGE': 'true']
+}
+
+nativeBuild {
+	classpath processAotResources.outputs, compileAotJava.outputs
+}
+
+nativeTest {
+	classpath processAotTestResources.outputs, compileAotTestJava.outputs
 }
