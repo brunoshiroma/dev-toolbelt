@@ -66,6 +66,8 @@ tasks.getByName("bootBuildImage"){
 	environment = [
 			"BP_BOOT_NATIVE_IMAGE" : "1",
 			"BP_BOOT_NATIVE_IMAGE_BUILD_ARGUMENTS" : """
+				--static 
+				--libc=musl
                 -Dspring.native.remove-yaml-support=true
                 -H:IncludeResources='templates/.*'
                 -H:IncludeResources='static/.*'
