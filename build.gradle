@@ -8,7 +8,7 @@ plugins {
 
 group = 'com.brunoshiroma'
 version = '0.1.2-SNAPSHOT'
-sourceCompatibility = '11'
+sourceCompatibility = '16'
 
 configurations {
 	developmentOnly
