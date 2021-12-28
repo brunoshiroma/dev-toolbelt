@@ -26,7 +26,7 @@ RUN chmod +x ./gradlew
 RUN ./gradlew clean
 RUN ./gradlew nativeBuild
 
-FROM debian:11-slim as runtime
+FROM ubuntu:20.04 as runtime
 WORKDIR /app
 COPY --from=builder /app/build/native/nativeBuild/devtoolbelt /app/dev-toolbelt
 ENTRYPOINT ["/app/dev-toolbelt"]
