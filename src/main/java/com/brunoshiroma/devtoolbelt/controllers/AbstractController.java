@@ -1,6 +1,7 @@
 package com.brunoshiroma.devtoolbelt.controllers;
 
 import com.brunoshiroma.devtoolbelt.config.DevtoolbeltConfigBean;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.ui.Model;
 
 import java.text.ParseException;
@@ -23,6 +24,9 @@ public abstract class AbstractController {
         this.configBean = configBean;
     }
 
+    @Value("${heroku:false}")
+    private String heroku;
+
     protected void setUpModel(Model model){
         try {
             Date lastChangeDate = releaseDateParser.parse(configBean.getRelease());
@@ -31,6 +35,7 @@ public abstract class AbstractController {
 
             model.addAttribute("changeYear", String.valueOf(lastChangeCal.get(Calendar.YEAR)));
             model.addAttribute("CACHE_VERSION", configBean.getRelease());
+            model.addAttribute("heroku", heroku);
         } catch (ParseException e) {
             Logger.getGlobal().throwing("StaticController", "setUpModel", e);
         }
