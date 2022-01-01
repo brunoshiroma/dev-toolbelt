@@ -19,4 +19,4 @@ jobs:
           architecture: x64 # (x64 or x86) - defaults to x64
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: |
-          ./gradlew clean build
+          ./gradlew clean buildGitHubActions
