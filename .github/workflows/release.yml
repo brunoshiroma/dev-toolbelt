@@ -13,6 +13,8 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Set output
+        id: vars
         run: echo ::set-output name=tag::${GITHUB_REF#refs/*/}
       - uses: actions/setup-java@v1
         with:
