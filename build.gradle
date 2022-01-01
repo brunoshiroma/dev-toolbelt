@@ -62,14 +62,13 @@ test {
 
 task buildGitHubActions{
 	doLast {
-		version = ""
+		version = getAppVersion()
 	}
 	finalizedBy build
 }
 
 compileJava{
 	doFirst {
-		version = getAppVersion()
 		//generate property on application.properties with timestamp, for use on spring
 		def propertyFile = file "src/main/resources/application.properties"
 		def props = new Properties()
