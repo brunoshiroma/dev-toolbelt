@@ -9,6 +9,27 @@ group = 'com.brunoshiroma'
 version = '0.1.2-SNAPSHOT'
 sourceCompatibility = '17'
 
+//from https://gist.github.com/Trogious/fbf69afee2ff049951ac6930de7bd0da
+def getAppVersion = { ->
+	def stdout = new ByteArrayOutputStream()
+	exec {
+		commandLine 'git', 'rev-parse', '--short', 'HEAD'
+		standardOutput = stdout
+	}
+	def commitId = stdout.toString().replace("\n", "").replace("\r", "").trim()
+	stdout = new ByteArrayOutputStream()
+	exec {
+		commandLine 'git', 'tag', '--points-at', commitId
+		standardOutput = stdout
+	}
+	def tagName = stdout.toString().replace("\n", "").replace("\r", "").trim()
+	def versionName = 'git-' + commitId
+	if (tagName != null && "" != tagName) {
+		versionName = tagName
+	}
+	return versionName
+}
+
 
 configurations {
 	developmentOnly
@@ -48,6 +69,7 @@ task buildGitHubActions{
 
 compileJava{
 	doFirst {
+		version = getAppVersion()
 		//generate property on application.properties with timestamp, for use on spring
 		def propertyFile = file "src/main/resources/application.properties"
 		def props = new Properties()
@@ -101,3 +123,4 @@ graalvmNative {
 		}
 	}
 }
+
