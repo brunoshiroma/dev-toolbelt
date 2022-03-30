@@ -9,7 +9,7 @@ RUN apt install zlib1g-dev -y
 # RUN apt install musl-tools -y
 
 # musl is only compatible with java 11, by now
-RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.2.0/graalvm-ce-java11-linux-amd64-21.2.0.tar.gz -O graalvm-ce-linux-amd64.tar.gz
+RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.0.0.2/graalvm-ce-java11-linux-amd64-22.0.0.2.tar.gz -O graalvm-ce-linux-amd64.tar.gz
 
 RUN mkdir -p /tools/graalvm-ce
 RUN tar -zxvf graalvm-ce-linux-amd64.tar.gz -C /tools/graalvm-ce --strip-components=1
