@@ -6,6 +6,12 @@
     <meta name="author" content="Bruno Shiroma">
     <meta th:replace="fragments/header.html">
     <link rel="stylesheet" href="css/bootstrap.min.css">
+
+    <script th:if="${heroku == 'true'}" type="text/javascript">
+        if (window.location.protocol != "https:") {
+           window.location.protocol = "https";
+        }
+    </script>
 </head>
 <body class="h-100">
 <div class="d-flex flex-column h-100 w-100">
