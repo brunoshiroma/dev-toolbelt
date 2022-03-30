@@ -33,4 +33,4 @@ RUN groupadd -r dev && useradd --no-log-init -r -g dev dev
 USER dev
 WORKDIR /app
 COPY --from=builder /app/build/native/nativeCompile/devtoolbelt /app/dev-toolbelt
-ENTRYPOINT ["/app/dev-toolbelt"]g
+ENTRYPOINT ["/app/dev-toolbelt"]
