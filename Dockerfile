@@ -7,6 +7,7 @@ RUN apt update &&  apt install -y \
     build-essential \
     zlib1g-dev
 
+
 RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-21.3.0/graalvm-ce-java17-linux-amd64-21.3.0.tar.gz -O graalvm-ce-linux-amd64.tar.gz
 
 RUN mkdir -p /tools/graalvm-ce
