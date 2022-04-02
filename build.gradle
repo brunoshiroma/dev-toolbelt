@@ -65,27 +65,6 @@ compileJava{
 	}
 }
 
-//tasks.getByName("bootBuildImage"){
-//	builder = "paketobuildpacks/builder:tiny"
-//	environment = [
-//			"BP_BOOT_NATIVE_IMAGE" : "1",
-//			"BP_BOOT_NATIVE_IMAGE_BUILD_ARGUMENTS" : """
-//				-H:+StaticExecutableWithDynamicLibC
-//                -Dspring.native.remove-yaml-support=true
-//                -H:IncludeResources='templates/.*'
-//                -H:IncludeResources='static/.*'
-//                -H:IncludeResources='application.*properties\$'
-//                -H:Log=registerResource:verbose
-//            """.trim()
-//	]
-//}
-//
-//
-//bootBuildImage {
-//	builder = 'paketobuildpacks/builder:tiny'
-//	environment = ['BP_NATIVE_IMAGE': 'true']
-//}
-
 bootBuildImage {
 	builder = 'paketobuildpacks/builder:tiny'
 	environment = ['BP_NATIVE_IMAGE': 'true',
