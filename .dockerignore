@@ -1,1 +1,9 @@
 Dockerfile
+build
+.github
+.gradle
+.idea
+.vscode
+.settings
+.classpath
+.project
