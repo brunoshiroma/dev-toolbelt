@@ -43,7 +43,7 @@ RUN cd target/native
 RUN ls -la /app/build/libs
 RUN /tools/graalvm-ce/bin/jar -xvf /app/build/libs/devtoolbelt.jar
 RUN cp -R META-INF BOOT-INF/classes
-RUN PATH=$PATH:/tools/musl/bin /usr/bin/native-image --no-fallback --static --libc=musl -H:Name=dev-toolbelt -cp BOOT-INF/classes:`find BOOT-INF/lib | tr '\n' ':'`
+RUN native-image --no-fallback --static --libc=musl -H:Name=dev-toolbelt -cp BOOT-INF/classes:`find BOOT-INF/lib | tr '\n' ':'`
 
 FROM alpine as runtime
 WORKDIR /app
