@@ -46,6 +46,10 @@ task buildGitHubActions{
 	finalizedBy build
 }
 
+springAot {
+	removeSpelSupport = true
+}
+
 compileJava{
 	doFirst {
 		//generate property on application.properties with timestamp, for use on spring
@@ -84,7 +88,8 @@ compileJava{
 
 bootBuildImage {
 	builder = 'paketobuildpacks/builder:tiny'
-	environment = ['BP_NATIVE_IMAGE': 'true']
+	environment = ['BP_NATIVE_IMAGE': 'true',
+			'BP_NATIVE_IMAGE_BUILD_ARGUMENTS' : '--static --libc=musl']
 }
 
 bootJar {
