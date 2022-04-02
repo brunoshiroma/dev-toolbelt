@@ -2,7 +2,8 @@ name: security-trivy
 on:
   push:
     branches:
-      - master
+      - main
+      - develop
   pull_request:
 jobs:
   build:
