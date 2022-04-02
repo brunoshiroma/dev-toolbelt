@@ -1,5 +1,5 @@
 plugins {
-	id 'org.springframework.boot' version '2.6.5'
+	id 'org.springframework.boot' version '2.6.6'
 	id 'io.spring.dependency-management' version '1.0.11.RELEASE'
 	id 'java'
 	id 'org.springframework.experimental.aot' version '0.11.3'
@@ -67,6 +67,10 @@ task buildGitHubActions{
 	finalizedBy build
 }
 
+springAot {
+	removeSpelSupport = true
+}
+
 compileJava{
 	doFirst {
 		//generate property on application.properties with timestamp, for use on spring
@@ -105,7 +109,8 @@ compileJava{
 
 bootBuildImage {
 	builder = 'paketobuildpacks/builder:tiny'
-	environment = ['BP_NATIVE_IMAGE': 'true']
+	environment = ['BP_NATIVE_IMAGE': 'true',
+			'BP_NATIVE_IMAGE_BUILD_ARGUMENTS' : '--static --libc=musl']
 }
 
 bootJar {
