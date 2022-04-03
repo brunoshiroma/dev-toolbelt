@@ -1,9 +1,6 @@
 name: deploy-staging
 
 on:
-  push:
-    branches:
-      - develop
   workflow_run:
     workflows: [Create and publish a Docker image]
     types:
@@ -11,6 +8,7 @@ on:
 
 jobs:
   build:
+    if: github.ref == 'refs/heads/develop'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
@@ -21,8 +19,8 @@ jobs:
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           justlogin: true
       - run:  |
-          docker pull ghcr.io/brunoshiroma/dev-toolbelt:develop
+          docker pull ghcr.io/brunoshiroma/dev-toolbelt:develop \
           heroku container:login \
-          docker tag ghcr.io/brunoshiroma/dev-toolbelt:develop registry.heroku.com/dev-toolbelt-staging/web
-          docker push registry.heroku.com/dev-toolbelt-staging/web
-          heroku container:release web --app dev-toolbelt-staging
+          docker tag ghcr.io/brunoshiroma/dev-toolbelt:develop registry.heroku.com/dev-toolbelt-staging/web \
+          docker push registry.heroku.com/dev-toolbelt-staging/web \
+          heroku container:release web --app dev-toolbelt-staging \
