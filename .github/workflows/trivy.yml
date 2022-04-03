@@ -7,7 +7,7 @@ name: trivy
 
 on:
   workflow_run:
-    workflows: [Create and publish a Docker image]
+    workflows: ['Create and publish a Docker image']
     types:
       - completed
 
