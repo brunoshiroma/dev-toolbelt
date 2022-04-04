@@ -6,10 +6,10 @@
 name: trivy
 
 on:
-  push:
-    branches: [ main, develop ]
-  pull_request:
-    branches: [ main ]
+  workflow_run:
+    workflows: ['Create and publish a Docker image']
+    types:
+      - completed
 
 permissions:
   contents: read
@@ -25,14 +25,10 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v3
 
-      - name: Build an image from Dockerfile
-        run: |
-          docker build -t dev-toolbelt:${{ github.sha }} .
-
       - name: Run Trivy vulnerability scanner
         uses: aquasecurity/trivy-action@2a2157eb22c08c9a1fac99263430307b8d1bc7a2
         with:
-          image-ref: 'dev-toolbelt:${{ github.sha }}'
+          image-ref: 'ghcr.io/brunoshiroma/dev-toolbelt:develop'
           format: 'template'
           template: '@/contrib/sarif.tpl'
           output: 'trivy-results.sarif'
