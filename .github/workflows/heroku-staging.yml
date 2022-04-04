@@ -2,7 +2,7 @@ name: deploy-staging
 
 on:
   workflow_run:
-    workflows: ['docker build']
+    workflows: [docker build]
     types:
       - completed
 
