@@ -1,0 +1,14 @@
+name: Test workflow_run
+
+on:
+  workflow_run:
+    workflows: [Build java]
+    types:
+      - completed
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: 'Echo'
+        run: echo 'ok'
