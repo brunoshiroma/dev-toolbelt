@@ -16,7 +16,7 @@ jobs:
           heroku_app_name: "dev-toolbelt"
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           justlogin: true
-      - run:  |
-          heroku container:login \
-          heroku container:push --app dev-toolbelt \
+      - run: |
+          heroku container:login
+          heroku container:push --app dev-toolbelt
           heroku container:release web --app dev-toolbelt

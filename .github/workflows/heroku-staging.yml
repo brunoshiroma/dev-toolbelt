@@ -18,9 +18,9 @@ jobs:
           heroku_app_name: "dev-toolbelt-staging"
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           justlogin: true
-      - run:  |
-          docker pull ghcr.io/brunoshiroma/dev-toolbelt:develop \
-          heroku container:login \
-          docker tag ghcr.io/brunoshiroma/dev-toolbelt:develop registry.heroku.com/dev-toolbelt-staging/web \
-          docker push registry.heroku.com/dev-toolbelt-staging/web \
-          heroku container:release web --app dev-toolbelt-staging \
+      - run: |
+          docker pull ghcr.io/brunoshiroma/dev-toolbelt:develop
+          heroku container:login
+          docker tag ghcr.io/brunoshiroma/dev-toolbelt:develop registry.heroku.com/dev-toolbelt-staging/web
+          docker push registry.heroku.com/dev-toolbelt-staging/web
+          heroku container:release web --app dev-toolbelt-staging
