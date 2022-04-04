@@ -1,8 +1,12 @@
 name: docker build
 
 on:
-  push:
-    branches: [develop]
+  #push:
+  #  branches: [develop]
+  workflow_run:
+    workflows: [build]
+    types:
+      - completed
 
 env:
   REGISTRY: ghcr.io
@@ -10,6 +14,7 @@ env:
 
 jobs:
   build-and-push-image:
+    if: github.event.workflow_run.conclusion == 'success' && github.ref == 'develop'
     runs-on: ubuntu-latest
     permissions:
       contents: read
