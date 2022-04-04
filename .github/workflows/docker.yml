@@ -5,8 +5,8 @@ on:
   #  branches: [develop]
   workflow_run:
     workflows: [build]
-    types:
-      - completed
+    types: [completed]
+    branches: [develop]
 
 env:
   REGISTRY: ghcr.io
@@ -14,8 +14,8 @@ env:
 
 jobs:
   build-and-push-image:
-    if: github.event.workflow_run.conclusion == 'success' && github.ref == 'develop'
     runs-on: ubuntu-latest
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     permissions:
       contents: read
       packages: write
