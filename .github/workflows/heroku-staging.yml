@@ -5,6 +5,8 @@ on:
     workflows: [docker build]
     types:
       - completed
+    branches:
+      - develop
 
 jobs:
   build:
