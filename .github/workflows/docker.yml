@@ -3,8 +3,10 @@ name: docker build
 on:
   workflow_run:
     workflows: [build java]
-    types: [completed]
-    branches: [develop]
+    types:
+      - completed
+    branches: 
+      - develop
 
 env:
   REGISTRY: ghcr.io
