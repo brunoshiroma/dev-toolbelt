@@ -2,7 +2,7 @@ name: docker build
 
 on:
   workflow_run:
-    workflows: [Build java]
+    workflows: ['Build java']
     types:
       - completed
     #branches: 
