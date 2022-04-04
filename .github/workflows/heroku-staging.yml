@@ -8,7 +8,7 @@ on:
 
 jobs:
   build:
-    if: github.ref == 'refs/heads/develop'
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.ref == 'develop'}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
