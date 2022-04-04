@@ -5,8 +5,8 @@ on:
     workflows: ['Build java']
     types:
       - completed
-    #branches: 
-    #  - develop
+    branches: 
+      - develop
 
 env:
   REGISTRY: ghcr.io
