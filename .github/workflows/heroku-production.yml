@@ -5,11 +5,10 @@ on:
     workflows: ['docker build']
     types:
       - completed
-    branches:
-      - main
 
 jobs:
   build:
+    if: ${{ github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'}}
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
