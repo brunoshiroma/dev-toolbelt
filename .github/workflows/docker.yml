@@ -39,6 +39,10 @@ jobs:
         uses: docker/metadata-action@v3
         with:
           images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=raw,value=latest,enable=${{ github.ref == format('refs/heads/{0}', github.event.workflow_run.head_branch) }}
+            type=sha
+            type=sha,format=long
 
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
