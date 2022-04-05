@@ -1,7 +1,10 @@
 name: deploy-production
 
 on:
-  push:
+  workflow_run:
+    workflows: ['docker build']
+    types:
+      - completed
     branches:
       - main
 
@@ -17,6 +20,8 @@ jobs:
           heroku_email: ${{secrets.HEROKU_EMAIL}}
           justlogin: true
       - run: |
+          docker pull ghcr.io/brunoshiroma/dev-toolbelt:main
           heroku container:login
-          heroku container:push --app dev-toolbelt
+          docker tag ghcr.io/brunoshiroma/dev-toolbelt:main registry.heroku.com/dev-toolbelt/web
+          docker push registry.heroku.com/dev-toolbelt/web
           heroku container:release web --app dev-toolbelt
