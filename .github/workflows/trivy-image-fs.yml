@@ -3,7 +3,7 @@
 # separate terms of service, privacy policy, and support
 # documentation.
 
-name: trivy-image
+name: trivy-fs
 
 on:
   push:
