@@ -45,6 +45,12 @@ jobs:
             type=sha
             type=sha,format=long
 
+      - name: cached jar
+        uses: actions/cache@v3
+        with:
+          path: build/libs/devtoolbelt.jar
+          restore-keys: ${{ runner.os }}-jar-${{ github.sha }}
+
       - name: Build and push Docker image
         uses: docker/build-push-action@v2
         with:
@@ -52,5 +58,5 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=registry,ref=${{env.REGISTRY}}/${{env.IMAGE_NAME}}:buildcache
-          cache-to: type=registry,ref=${{env.REGISTRY}}/${{env.IMAGE_NAME}}:buildcache,mode=max
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

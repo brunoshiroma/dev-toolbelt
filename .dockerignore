@@ -7,3 +7,5 @@ build
 .settings
 .classpath
 .project
+
+!build/libs/devtoolbelt.jar
