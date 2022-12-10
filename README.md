@@ -11,8 +11,5 @@ Project uses [graalvm](https://www.graalvm.org/) + [springboot native AoT](https
 Docker image size ~85MB    
 Application startup less than 1000ms
 
-### deploy
- * [Heroku](https://dev-toolbelt.herokuapp.com/)
-
 ## Tools:
  * Http Request Client Ip
