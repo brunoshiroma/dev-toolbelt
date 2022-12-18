@@ -2,12 +2,13 @@ package com.brunoshiroma.devtoolbelt.controllers;
 
 import com.brunoshiroma.devtoolbelt.config.DevtoolbeltConfigBean;
 import com.brunoshiroma.devtoolbelt.services.NetworkToolsService;
+
+import jakarta.servlet.http.HttpServletRequest;
+
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
-
-import javax.servlet.http.HttpServletRequest;
 
 @Controller
 public class NetworkToolsController extends AbstractController{

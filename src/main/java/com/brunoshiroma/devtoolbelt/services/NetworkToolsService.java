@@ -2,7 +2,7 @@ package com.brunoshiroma.devtoolbelt.services;
 
 import org.springframework.stereotype.Component;
 
-import javax.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletRequest;
 
 @Component
 public class NetworkToolsService {
