@@ -1,9 +1,10 @@
 package com.brunoshiroma.devtoolbelt.controllers;
 
-import com.brunoshiroma.devtoolbelt.config.DevtoolbeltConfigBean;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
+
+import com.brunoshiroma.devtoolbelt.config.DevtoolbeltConfigBean;
 
 @Controller
 public class StaticController extends AbstractController {
