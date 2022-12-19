@@ -20,14 +20,12 @@ jobs:
           key: ${{ runner.os }}-gradle-${{ hashFiles('**/*.gradle*', '**/gradle-wrapper.properties') }}
           restore-keys: |
             ${{ runner.os }}-gradle-
-      - uses: actions/setup-java@v1
-        name: setup graalvm
+      - uses: graalvm/setup-graalvm@v1
         with:
-          java-version: '17' # The JDK version to make available on the path.
-          java-package: jdk # (jre, jdk, or jdk+fx) - defaults to jdk
-          architecture: x64 # (x64 or x86) - defaults to x64
-      - name: install native-image
-        run: gu install native-image
+          version: '22.3.0'
+          java-version: '17'
+          components: 'native-image'
+          github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: make build-java-github
       - uses: actions/cache@v3
