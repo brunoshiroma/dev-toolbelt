@@ -11,7 +11,7 @@ build-docker: build-java-github
 	docker build -t dev-toolbelt .
 
 build-docker-multistage:
-	docker build . -f Dockerfile.multistage
+	docker build -t dev-toolbelt -f Dockerfile.multistage .
 
 build-native: build-java-github
 	rm -rf build/native

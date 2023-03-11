@@ -1,8 +1,8 @@
 plugins {
-	id 'org.springframework.boot' version '3.0.0'
+	id 'org.springframework.boot' version '3.0.4'
 	id 'io.spring.dependency-management' version '1.1.0'
 	id 'java'
-	id 'org.graalvm.buildtools.native' version '0.9.18'
+	id 'org.graalvm.buildtools.native' version '0.9.20'
 }
 
 group = 'com.brunoshiroma'
@@ -47,9 +47,6 @@ compileJava{
 		propertyFile.withReader { props.load(it) }
 		props.setProperty('release', new Date().format('yyyyMMdd-HHmmss'))
 		propertyFile.withWriter { props.store(it, null) }
-
-		//update the heroku procfile with version from this file
-		new File(projectDir, "Procfile").text = "web: java -jar build/libs/devtoolbelt-${version}.jar"
 
 	}
 }
