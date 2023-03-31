@@ -33,23 +33,8 @@ async function generatePass(useUpper, useLower, useNumber, useSpecialCommon, use
 
     const pass = new Array(size);
 
-    const alreadyUsed = [];
-
     for (var i = 0; i < size; i++) {
         const randomValue = await generateRandom(charsArray.length);
-
-        let usedCount = 0;
-        alreadyUsed.forEach(u => {
-            if (randomValue === u) {
-                usedCount++;
-            }
-        });
-        if (alreadyUsed.length > 0 && usedCount > 0) {
-            --i;
-            continue
-        }
-        alreadyUsed.push(randomValue);
-
         pass[i] = charsArray[randomValue];
     }
 

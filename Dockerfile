@@ -1,5 +1,5 @@
 # build the native part on docker, depends on host java build
-FROM ubuntu:20.04 as builder
+FROM ubuntu:22.04 as builder
 
 WORKDIR /tools
 
@@ -9,7 +9,7 @@ RUN apt update &&  apt install -y \
     zlib1g-dev
 
 
-RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java17-linux-amd64-22.3.0.tar.gz -O graalvm-ce-linux-amd64.tar.gz
+RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.1/graalvm-ce-java19-linux-amd64-22.3.1.tar.gz -O graalvm-ce-linux-amd64.tar.gz
 RUN wget http://more.musl.cc/10/x86_64-linux-musl/x86_64-linux-musl-native.tgz -O x86_64-linux-musl-native.tgz
 RUN wget https://zlib.net/zlib-1.2.13.tar.gz -O zlib.tar.gz
 
