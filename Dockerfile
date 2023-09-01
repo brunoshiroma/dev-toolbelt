@@ -11,7 +11,7 @@ RUN apt update &&  apt install -y \
 
 RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/vm-22.3.0/graalvm-ce-java17-linux-amd64-22.3.0.tar.gz -O graalvm-ce-linux-amd64.tar.gz
 RUN wget http://more.musl.cc/10/x86_64-linux-musl/x86_64-linux-musl-native.tgz -O x86_64-linux-musl-native.tgz
-RUN wget https://zlib.net/zlib-1.2.13.tar.gz -O zlib.tar.gz
+RUN wget https://zlib.net/current/zlib.tar.gz -O zlib.tar.gz
 
 RUN mkdir -p /tools/graalvm-ce
 RUN tar -zxvf graalvm-ce-linux-amd64.tar.gz -C /tools/graalvm-ce --strip-components=1
