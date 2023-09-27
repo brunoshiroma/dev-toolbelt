@@ -22,9 +22,7 @@ jobs:
             ${{ runner.os }}-gradle-
       - uses: graalvm/setup-graalvm@v1
         with:
-          version: '22.3.0'
-          java-version: '17'
-          components: 'native-image'
+          java-version: '21'
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: make build-java-github
