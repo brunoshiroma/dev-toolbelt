@@ -6,8 +6,8 @@ plugins {
 }
 
 group = 'com.brunoshiroma'
-version = '0.1.2-SNAPSHOT'
-sourceCompatibility = '17'
+version = '0.2.0-SNAPSHOT'
+sourceCompatibility = '21'
 
 repositories {
 	maven { url 'https://repo.spring.io/release' }
