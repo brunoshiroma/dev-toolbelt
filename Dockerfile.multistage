@@ -38,7 +38,7 @@ COPY src/ src/
 RUN chmod +x ./gradlew
 RUN ./gradlew clean --no-daemon
 RUN ./gradlew processAot
-RUN ./gradlew nativeBuildGitHubActions --no-daemon
+RUN ./gradlew nativeBuild --no-daemon
 
 FROM alpine as runtime
 WORKDIR /app
