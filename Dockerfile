@@ -9,7 +9,7 @@ RUN apt update &&  apt install -y \
     zlib1g-dev
 
 
-RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.0/graalvm-community-jdk-21.0.0_linux-x64_bin.tar.gz -O graalvm-ce-linux-amd64.tar.gz
+RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-23.0.2/graalvm-community-jdk-23.0.2_linux-x64_bin.tar.gz -O graalvm-ce-linux-amd64.tar.gz
 RUN wget http://more.musl.cc/10/x86_64-linux-musl/x86_64-linux-musl-native.tgz -O x86_64-linux-musl-native.tgz
 RUN wget https://zlib.net/current/zlib.tar.gz -O zlib.tar.gz
 

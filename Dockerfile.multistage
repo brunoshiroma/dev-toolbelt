@@ -1,5 +1,5 @@
 #build everthing on docker.
-FROM ubuntu:20.04 as builder
+FROM ubuntu:24.04 as builder
 
 WORKDIR /tools
 
@@ -8,7 +8,7 @@ RUN apt update &&  apt install -y \
     build-essential \
     zlib1g-dev
 
-RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-21.0.0/graalvm-community-jdk-21.0.0_linux-x64_bin.tar.gz -O graalvm-ce-linux-amd64.tar.gz
+RUN wget https://github.com/graalvm/graalvm-ce-builds/releases/download/jdk-23.0.2/graalvm-community-jdk-23.0.2_linux-x64_bin.tar.gz -O graalvm-ce-linux-amd64.tar.gz
 RUN wget http://more.musl.cc/10/x86_64-linux-musl/x86_64-linux-musl-native.tgz -O x86_64-linux-musl-native.tgz
 RUN wget https://zlib.net/current/zlib.tar.gz -O zlib.tar.gz
 
@@ -23,6 +23,7 @@ RUN cd /tools/zlib && CC=/tools/musl/bin/gcc ./configure --prefix=/tools/musl --
 
 ENV PATH=$PATH:/tools/graalvm-ce/bin
 ENV PATH=$PATH:/tools/musl/bin
+ENV JAVA_HOME=/tools/graalvm-ce
 
 RUN groupadd -r dev && useradd --no-log-init -r -g dev dev
 
@@ -36,17 +37,12 @@ COPY src/ src/
 
 RUN chmod +x ./gradlew
 RUN ./gradlew clean --no-daemon
-RUN ./gradlew buildGitHubActions --no-daemon
-
-# https://docs.spring.io/spring-native/docs/current/reference/htmlsingle/#_with_code_native_image_code
-RUN rm -rf target/native
-RUN mkdir -p target/native
-RUN cd target/native
-RUN /tools/graalvm-ce/bin/jar -xvf /app/build/libs/devtoolbelt.jar
-RUN cp -R META-INF BOOT-INF/classes
-RUN native-image --no-fallback --static --libc=musl -H:Name=dev-toolbelt -cp BOOT-INF/classes:`find BOOT-INF/lib | tr '\n' ':'`
+RUN ./gradlew processAot
+RUN ./gradlew nativeBuildGitHubActions --no-daemon
 
 FROM alpine as runtime
 WORKDIR /app
-COPY --from=builder /app/dev-toolbelt /app/dev-toolbelt
+RUN apk update && apk add libc6-compat
+
+COPY --from=builder /app/build/native/nativeCompile/devtoolbelt /app/dev-toolbelt
 ENTRYPOINT ["/app/dev-toolbelt"]
