@@ -12,7 +12,7 @@ public class NetworkToolsService {
     public String getClientIp(HttpServletRequest request) {
         final var forwardedHeader = request.getHeader("X-Forwarded-For");
 
-        return Optional.of(forwardedHeader).orElse(request.getRemoteAddr());
+        return Optional.ofNullable(forwardedHeader).orElse(request.getRemoteAddr());
     }
 
 }
