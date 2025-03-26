@@ -37,7 +37,7 @@ RUN mkdir -p target/native
 RUN cd target/native
 RUN /tools/graalvm-ce/bin/jar -xvf /app/devtoolbelt.jar
 RUN cp -R META-INF BOOT-INF/classes
-RUN native-image --no-fallback --static --libc=musl -H:Name=dev-toolbelt -cp BOOT-INF/classes:`find BOOT-INF/lib | tr '\n' ':'`
+RUN native-image --no-fallback --static --libc=musl -H:-AddAllFileSystemProviders -H:Name=dev-toolbelt -cp BOOT-INF/classes:`find BOOT-INF/lib | tr '\n' ':'`
 
 FROM alpine as runtime
 WORKDIR /app
