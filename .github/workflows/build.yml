@@ -11,8 +11,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
-        uses: actions/checkout@v2
-      - uses: actions/cache@v3
+        uses: actions/checkout@v4
+      - uses: actions/cache@v4
         with:
           path: |
             ~/.gradle/caches
@@ -26,7 +26,7 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build project # This would actually build your project, using zip for an example artifact
         run: make build-java-github
-      - uses: actions/cache@v3
+      - uses: actions/cache@v4
         with:
           path: build/libs/devtoolbelt.jar
           key: ${{ runner.os }}-jar-${{ github.sha }}
