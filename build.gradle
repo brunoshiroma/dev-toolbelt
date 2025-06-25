@@ -56,3 +56,11 @@ compileJava{
 bootJar {
 	mainClass.set('com.brunoshiroma.devtoolbelt.DevtoolbeltApplication')
 }
+
+graalvmNative {
+	binaries {
+		main{
+			buildArgs.add('--libc=musl')
+		}
+	}
+}
