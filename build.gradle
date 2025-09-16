@@ -7,7 +7,12 @@ plugins {
 
 group = 'com.brunoshiroma'
 version = '0.2.0-SNAPSHOT'
-sourceCompatibility = '21'
+
+java {
+    toolchain {
+        languageVersion = JavaLanguageVersion.of(25)
+    }
+}
 
 repositories {
 	mavenCentral()
@@ -34,11 +39,11 @@ test {
 	jvmArgs '-agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image'
 }
 
-task buildGitHubActions{
-	doLast {
-		version = ""
-	}
-	finalizedBy build
+tasks.register('buildGitHubActions') {
+    doLast {
+        version = ""
+    }
+    finalizedBy build
 }
 
 compileJava{

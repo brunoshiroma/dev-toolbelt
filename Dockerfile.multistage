@@ -1,5 +1,5 @@
 #build everthing on docker.
-FROM container-registry.oracle.com/graalvm/native-image:24-muslib AS builder
+FROM container-registry.oracle.com/graalvm/native-image:25-muslib AS builder
 
 RUN microdnf makecache && microdnf install findutils -y
 
@@ -18,7 +18,7 @@ RUN ./gradlew clean --no-daemon
 RUN ./gradlew processAot
 RUN ./gradlew nativeBuild --no-daemon
 
-FROM alpine as runtime
+FROM alpine AS runtime
 WORKDIR /app
 RUN apk update && apk add libc6-compat
 

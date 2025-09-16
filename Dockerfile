@@ -1,5 +1,5 @@
 # build the native part on docker, depends on host java build
-FROM container-registry.oracle.com/graalvm/native-image:24-muslib AS builder
+FROM container-registry.oracle.com/graalvm/native-image:25-muslib AS builder
 
 RUN microdnf makecache && microdnf install findutils -y
 
