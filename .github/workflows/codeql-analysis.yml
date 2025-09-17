@@ -6,8 +6,6 @@ on:
   pull_request:
     # The branches below must be a subset of the branches above
     branches: [main]
-  schedule:
-    - cron: '0 7 * * *'
 
 jobs:
   analyze:
@@ -28,6 +26,7 @@ jobs:
       # Override language selection by uncommenting this and choosing your languages
       with:
         languages: java
+        build-mode: manual
 
     - uses: graalvm/setup-graalvm@v1
       with:
