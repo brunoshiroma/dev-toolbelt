@@ -19,7 +19,7 @@ repositories {
 }
 
 dependencies {
-	implementation('org.springframework.boot:spring-boot-starter-web') {
+	implementation('org.springframework.boot:spring-boot-starter-webmvc') {
 		exclude group: 'org.springframework.boot', module: 'spring-boot-starter-tomcat'
 	}
 	implementation 'org.springframework.boot:spring-boot-starter-jetty'
@@ -28,10 +28,13 @@ dependencies {
 
 	implementation 'org.springframework:spring-context-indexer'
 
-	testImplementation('org.springframework.boot:spring-boot-starter-test') {
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+
+	testImplementation('org.springframework.boot:spring-boot-starter-webmvc-test') {
 		exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
 	}
-	testImplementation 'org.springframework.security:spring-security-test'
+    testImplementation 'org.springframework.boot:spring-boot-starter-thymeleaf-test'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
 }
 
 test {
