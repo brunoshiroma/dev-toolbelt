@@ -8,14 +8,13 @@ RUN groupadd -r dev && useradd --no-log-init -r -g dev dev
 WORKDIR /app
 
 COPY build/libs/devtoolbelt.jar .
-COPY src/main/resources/META-INF BOOT-INF/classes
 
 RUN rm -rf target/native
 RUN mkdir -p target/native
 RUN cd target/native
 RUN jar -xvf /app/devtoolbelt.jar
 RUN cp -R META-INF BOOT-INF/classes
-RUN native-image -Os --no-fallback --static --libc=musl -H:-AddAllFileSystemProviders -H:Name=dev-toolbelt -cp BOOT-INF/classes:`find BOOT-INF/lib | tr '\n' ':'`
+RUN native-image -Os --no-fallback --static --libc=musl -H:+UnlockExperimentalVMOptions -H:-AddAllFileSystemProviders -H:Name=dev-toolbelt -cp BOOT-INF/classes:`find BOOT-INF/lib | tr '\n' ':'`
 
 FROM alpine AS runtime
 WORKDIR /app
