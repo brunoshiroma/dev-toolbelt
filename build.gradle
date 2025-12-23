@@ -48,7 +48,7 @@ tasks.register('buildGitHubActions') {
     doLast {
         version = ""
     }
-    finalizedBy build
+    finalizedBy processTestAot, build
 }
 
 compileJava{
