@@ -31,6 +31,3 @@ bin/
 
 ### VS Code ###
 .vscode/
-
-## java native metadata
-src/main/resources/META-INF
