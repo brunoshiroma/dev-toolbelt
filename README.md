@@ -1,7 +1,7 @@
 # Simple Developer Toolbelt
 
 # Uses:
- * Springboot 3.5.5
+ * Springboot 4.0.2
  * Java 25
  * Graalvm 25
  * Gradle 9
@@ -13,3 +13,8 @@ Application startup less than 1000ms
 
 ## Tools:
  * Http Request Client Ip
+
+### Generate JSON for native-image
+```bash
+java -agentlib:native-image-agent=config-output-dir=src/main/resources/META-INF/native-image -jar build/libs/devtoolbelt.jar
+```
