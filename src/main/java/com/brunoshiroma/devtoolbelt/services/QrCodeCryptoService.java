@@ -10,7 +10,6 @@ import com.google.zxing.client.j2se.BufferedImageLuminanceSource;
 import com.google.zxing.client.j2se.MatrixToImageWriter;
 import com.google.zxing.common.BitMatrix;
 import com.google.zxing.common.HybridBinarizer;
-import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.stereotype.Component;
 import org.springframework.web.multipart.MultipartFile;
 

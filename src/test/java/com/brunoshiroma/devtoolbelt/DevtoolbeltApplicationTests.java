@@ -1,9 +1,9 @@
 package com.brunoshiroma.devtoolbelt;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.json.JsonParserFactory;
 import org.springframework.core.io.ByteArrayResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -27,9 +27,6 @@ class DevtoolbeltApplicationTests {
 
 	@Autowired
 	private TestRestTemplate restTemplate;
-
-	@Autowired
-	private ObjectMapper objectMapper;
 
 	@Test
 	void contextLoads() {
@@ -65,9 +62,9 @@ class DevtoolbeltApplicationTests {
 		);
 
 		Assertions.assertThat(generateResponse.getStatusCode().is2xxSuccessful()).isTrue();
-		final var generateBody = objectMapper.readTree(generateResponse.getBody());
-		final var encryptedPayload = generateBody.path("encryptedPayload").asText();
-		final var qrCodeDataUrl = generateBody.path("qrCodeDataUrl").asText();
+		final var generateBody = JsonParserFactory.getJsonParser().parseMap(generateResponse.getBody());
+		final var encryptedPayload = String.valueOf(generateBody.get("encryptedPayload"));
+		final var qrCodeDataUrl = String.valueOf(generateBody.get("qrCodeDataUrl"));
 
 		Assertions.assertThat(encryptedPayload).startsWith("dtbqr1.");
 		Assertions.assertThat(qrCodeDataUrl).startsWith("data:image/png;base64,");
@@ -93,10 +90,10 @@ class DevtoolbeltApplicationTests {
 		);
 
 		Assertions.assertThat(readResponse.getStatusCode().is2xxSuccessful()).isTrue();
-		final var readBody = objectMapper.readTree(readResponse.getBody());
+		final var readBody = JsonParserFactory.getJsonParser().parseMap(readResponse.getBody());
 
-		Assertions.assertThat(readBody.path("encryptedPayload").asText()).isEqualTo(encryptedPayload);
-		Assertions.assertThat(readBody.path("data").asText()).isEqualTo(sourceData);
+		Assertions.assertThat(String.valueOf(readBody.get("encryptedPayload"))).isEqualTo(encryptedPayload);
+		Assertions.assertThat(String.valueOf(readBody.get("data"))).isEqualTo(sourceData);
 	}
 
 
