@@ -53,6 +53,14 @@ public class StaticController extends AbstractController {
         return "url-encode.html";
     }
 
+    @GetMapping("/bluetooth")
+    public String bluetooth(Model model){
+        setUpModel(model);
+        model.addAttribute(HTML_TITLE, " - Bluetooth transfer");
+        model.addAttribute(HTML_DESCRIPTION, "Pair BLE devices and send encrypted message from your browser.");
+        return "bluetooth.html";
+    }
+
     @GetMapping("/offline")
     public String offline(Model model){
         setUpModel(model);

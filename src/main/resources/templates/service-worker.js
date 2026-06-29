@@ -11,6 +11,7 @@ const FILES_TO_CACHE = [
     "/password",
     "/url-encode",
     "/base64",
+    "/bluetooth",
     "/js/common.js",
     "/js/sha.js",
     "/js/password.js",

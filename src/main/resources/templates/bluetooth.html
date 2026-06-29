@@ -1,0 +1,246 @@
+<meta th:replace="~{fragments/base_html_top.html}">
+<h1>Bluetooth encrypted transfer</h1>
+<main role="main" class="container-fluid h-25 pt-3">
+    <div class="row">
+        <div class="col">
+            <div class="form-group">
+                <label for="bluetooth-data">Data</label>
+                <textarea id="bluetooth-data" class="h-100 w-100"></textarea>
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="form-group">
+                <label for="bluetooth-salt">Salt</label>
+                <input id="bluetooth-salt" class="w-100">
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-group">
+                <label for="bluetooth-otp">OTP</label>
+                <input id="bluetooth-otp" class="w-100">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="form-group">
+                <label for="bluetooth-service-uuid">Service UUID</label>
+                <input id="bluetooth-service-uuid" class="w-100" value="6e400001-b5a3-f393-e0a9-e50e24dcca9e">
+            </div>
+        </div>
+        <div class="col">
+            <div class="form-group">
+                <label for="bluetooth-characteristic-uuid">Characteristic UUID</label>
+                <input id="bluetooth-characteristic-uuid" class="w-100" value="6e400002-b5a3-f393-e0a9-e50e24dcca9e">
+            </div>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <div class="form-group">
+                <label for="bluetooth-devices">Paired devices</label>
+                <select id="bluetooth-devices" class="w-100"></select>
+            </div>
+        </div>
+    </div>
+    <div class="row h-100">
+        <div class="col">
+            <textarea id="bluetooth-output" disabled class="h-100 w-100"></textarea>
+        </div>
+    </div>
+    <div class="row">
+        <div class="col">
+            <button onclick="listBluetoothDevices();" type="button" class="btn btn-primary m-1">List devices</button>
+            <button onclick="pairBluetoothDevice();" type="button" class="btn btn-primary m-1">Pair device</button>
+            <button onclick="sendBluetoothMessage();" type="button" class="btn btn-primary m-1">Send crypto message</button>
+        </div>
+    </div>
+</main>
+
+<script src="js/common.js"></script>
+<script>
+    const bluetoothState = {
+        devices: []
+    };
+
+    function logBluetooth(message){
+        const output = byId('bluetooth-output');
+        output.value = output.value ? output.value + '\n' + message : message;
+    }
+
+    function isBluetoothSupported(){
+        return typeof navigator !== 'undefined' && !!navigator.bluetooth;
+    }
+
+    function refreshBluetoothDevicesSelect(){
+        const selectField = byId('bluetooth-devices');
+        selectField.innerHTML = '';
+
+        bluetoothState.devices.forEach((device, index) => {
+            const option = document.createElement('option');
+            option.value = index;
+            option.text = device.name || device.id;
+            selectField.appendChild(option);
+        });
+    }
+
+    async function listBluetoothDevices(){
+        if(!isBluetoothSupported()){
+            logBluetooth('Web Bluetooth is not available on this browser.');
+            return;
+        }
+
+        const knownDevices = await navigator.bluetooth.getDevices();
+        bluetoothState.devices = knownDevices;
+        refreshBluetoothDevicesSelect();
+
+        if(knownDevices.length === 0){
+            logBluetooth('No paired devices found.');
+            return;
+        }
+
+        logBluetooth('Found ' + knownDevices.length + ' paired device(s).');
+    }
+
+    async function pairBluetoothDevice(){
+        if(!isBluetoothSupported()){
+            logBluetooth('Web Bluetooth is not available on this browser.');
+            return;
+        }
+
+        const serviceUuid = byId('bluetooth-service-uuid').value.trim();
+        if(!serviceUuid){
+            logBluetooth('Service UUID is required.');
+            return;
+        }
+
+        try{
+            const device = await navigator.bluetooth.requestDevice({
+                acceptAllDevices: true,
+                optionalServices: [serviceUuid]
+            });
+
+            if(!bluetoothState.devices.find((item) => item.id === device.id)){
+                bluetoothState.devices.push(device);
+            }
+
+            refreshBluetoothDevicesSelect();
+            logBluetooth('Paired device: ' + (device.name || device.id));
+        } catch (error){
+            logBluetooth('Pair canceled/failed: ' + error.message);
+        }
+    }
+
+    function toBase64(buffer){
+        const bytes = new Uint8Array(buffer);
+        let binary = '';
+
+        bytes.forEach((byte) => {
+            binary += String.fromCharCode(byte);
+        });
+
+        return btoa(binary);
+    }
+
+    async function encryptBluetoothData(data, salt, otp){
+        const encoder = new TextEncoder();
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+
+        const keyMaterial = await crypto.subtle.importKey(
+            'raw',
+            encoder.encode(otp),
+            'PBKDF2',
+            false,
+            ['deriveKey']
+        );
+
+        const key = await crypto.subtle.deriveKey(
+            {
+                name: 'PBKDF2',
+                salt: encoder.encode(salt),
+                iterations: 100000,
+                hash: 'SHA-256'
+            },
+            keyMaterial,
+            {
+                name: 'AES-GCM',
+                length: 256
+            },
+            false,
+            ['encrypt']
+        );
+
+        const encrypted = await crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv },
+            key,
+            encoder.encode(data)
+        );
+
+        return JSON.stringify({
+            v: 1,
+            iv: toBase64(iv),
+            data: toBase64(encrypted)
+        });
+    }
+
+    async function sendBluetoothMessage(){
+        if(!isBluetoothSupported()){
+            logBluetooth('Web Bluetooth is not available on this browser.');
+            return;
+        }
+
+        const dataField = byId('bluetooth-data');
+        const saltField = byId('bluetooth-salt');
+        const otpField = byId('bluetooth-otp');
+        const serviceUuidField = byId('bluetooth-service-uuid');
+        const characteristicUuidField = byId('bluetooth-characteristic-uuid');
+        const devicesField = byId('bluetooth-devices');
+
+        if(!dataField.value){
+            logBluetooth('Data is required.');
+            return;
+        }
+        if(!saltField.value){
+            logBluetooth('Salt is required.');
+            return;
+        }
+        if(!otpField.value){
+            logBluetooth('OTP is required.');
+            return;
+        }
+        if(!serviceUuidField.value || !characteristicUuidField.value){
+            logBluetooth('Service UUID and characteristic UUID are required.');
+            return;
+        }
+
+        const selectedDevice = bluetoothState.devices[devicesField.selectedIndex];
+        if(!selectedDevice){
+            logBluetooth('Select a paired device.');
+            return;
+        }
+
+        try{
+            const cryptoPayload = await encryptBluetoothData(dataField.value, saltField.value, otpField.value);
+            const payloadBytes = new TextEncoder().encode(cryptoPayload);
+
+            if(!selectedDevice.gatt){
+                logBluetooth('Selected device does not provide GATT.');
+                return;
+            }
+
+            const server = await selectedDevice.gatt.connect();
+            const service = await server.getPrimaryService(serviceUuidField.value.trim());
+            const characteristic = await service.getCharacteristic(characteristicUuidField.value.trim());
+            await characteristic.writeValue(payloadBytes);
+
+            logBluetooth('Encrypted message sent to ' + (selectedDevice.name || selectedDevice.id));
+            logBluetooth('Payload: ' + cryptoPayload);
+        } catch (error){
+            logBluetooth('Send failed: ' + error.message);
+        }
+    }
+</script>
+
+<meta th:replace="~{fragments/base_html_bottom.html}">

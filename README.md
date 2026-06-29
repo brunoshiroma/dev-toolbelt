@@ -13,6 +13,7 @@ Application startup less than 1000ms
 
 ## Tools:
  * Http Request Client Ip
+ * Browser Bluetooth encrypted transfer
 
 ### Generate JSON for native-image
 ```bash
