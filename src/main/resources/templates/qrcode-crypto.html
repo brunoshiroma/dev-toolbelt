@@ -13,7 +13,7 @@
                 <input id="qrcode-create-salt" class="w-100">
             </div>
             <div class="form-group">
-                <label for="qrcode-create-otp">OTP</label>
+                <label for="qrcode-create-otp">One Time Password (OTP)</label>
                 <input id="qrcode-create-otp" class="w-100">
             </div>
             <div class="form-group">
@@ -38,7 +38,7 @@
                 <input id="qrcode-read-salt" class="w-100">
             </div>
             <div class="form-group">
-                <label for="qrcode-read-otp">OTP</label>
+                <label for="qrcode-read-otp">One Time Password (OTP)</label>
                 <input id="qrcode-read-otp" class="w-100">
             </div>
 
@@ -97,6 +97,61 @@
 
 <script src="js/common.js"></script>
 <script>
+    // ---------- Browser-side crypto (PBKDF2 + AES-GCM) ----------
+
+    function b64urlEncode(bytes) {
+        return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
+
+    function b64urlDecode(str) {
+        const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+        return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    }
+
+    async function deriveKey(otp, salt) {
+        const enc = new TextEncoder();
+        const passwordKey = await crypto.subtle.importKey(
+            'raw', enc.encode(otp), { name: 'PBKDF2' }, false, ['deriveKey']
+        );
+        return crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: enc.encode(salt), iterations: 65536, hash: 'SHA-256' },
+            passwordKey,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['encrypt', 'decrypt']
+        );
+    }
+
+    async function encryptData(data, salt, otp) {
+        const key = await deriveKey(otp, salt);
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const ciphertext = await crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv, tagLength: 128 },
+            key,
+            new TextEncoder().encode(data)
+        );
+        return 'dtbqr1.' + b64urlEncode(iv) + '.' + b64urlEncode(ciphertext);
+    }
+
+    async function decryptData(payload, salt, otp) {
+        const parts = payload.split('.');
+        if (parts.length !== 3 || parts[0] !== 'dtbqr1') {
+            throw new Error('Invalid QR code payload');
+        }
+        const key = await deriveKey(otp, salt);
+        const iv = b64urlDecode(parts[1]);
+        const ciphertext = b64urlDecode(parts[2]);
+        const plaintext = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv, tagLength: 128 },
+            key,
+            ciphertext
+        );
+        return new TextDecoder().decode(plaintext);
+    }
+
+    // ---------- UI functions ----------
+
     async function generateQrCode() {
         const dataField = byId('qrcode-create-data');
         const saltField = byId('qrcode-create-salt');
@@ -104,22 +159,21 @@
         const payloadField = byId('qrcode-create-payload');
         const imageField = byId('qrcode-create-image');
 
+        if (!dataField.value.trim()) { alert('Data is required'); return; }
+        if (!saltField.value.trim()) { alert('Salt is required'); return; }
+        if (!otpField.value.trim()) { alert('One Time Password is required'); return; }
+
         try {
+            const encryptedPayload = await encryptData(dataField.value, saltField.value, otpField.value);
+            payloadField.value = encryptedPayload;
+
             const response = await fetch('/api/qrcode-crypto/generate', {
                 method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify({
-                    data: dataField.value,
-                    salt: saltField.value,
-                    otp: otpField.value
-                })
+                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
+                body: JSON.stringify({ encryptedPayload })
             });
 
             const data = await readResponseJson(response);
-            payloadField.value = data.encryptedPayload;
             imageField.src = data.qrCodeDataUrl;
         } catch (error) {
             alert(error.message);
@@ -140,13 +194,11 @@
 
         const formData = new FormData();
         formData.append('file', fileField.files[0]);
-        formData.append('salt', saltField.value);
-        formData.append('otp', otpField.value);
 
         try {
-            const data = await postQrCodeForm(formData);
-            payloadField.value = data.encryptedPayload;
-            outputField.value = data.data;
+            const encryptedPayload = await readQrCodePayload(formData);
+            payloadField.value = encryptedPayload;
+            outputField.value = await decryptData(encryptedPayload, saltField.value, otpField.value);
         } catch (error) {
             alert(error.message);
         }
@@ -216,15 +268,13 @@
         canvas.toBlob(async (blob) => {
             const formData = new FormData();
             formData.append('file', blob, 'frame.png');
-            formData.append('salt', saltField.value);
-            formData.append('otp', otpField.value);
 
             try {
-                const data = await postQrCodeForm(formData);
+                const encryptedPayload = await readQrCodePayload(formData);
                 stopCamera();
                 setCameraStatus('QR code scanned successfully.');
-                payloadField.value = data.encryptedPayload;
-                outputField.value = data.data;
+                payloadField.value = encryptedPayload;
+                outputField.value = await decryptData(encryptedPayload, saltField.value, otpField.value);
             } catch (error) {
                 if (!error.message.includes('Unable to find a readable QR code')) {
                     stopCamera();
@@ -235,13 +285,14 @@
         }, 'image/png');
     }
 
-    async function postQrCodeForm(formData) {
+    async function readQrCodePayload(formData) {
         const response = await fetch('/api/qrcode-crypto/read', {
             method: 'POST',
             headers: { 'Accept': 'application/json' },
             body: formData
         });
-        return readResponseJson(response);
+        const data = await readResponseJson(response);
+        return data.encryptedPayload;
     }
 
     function setCameraStatus(text) {

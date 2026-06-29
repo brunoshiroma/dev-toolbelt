@@ -48,25 +48,22 @@ class DevtoolbeltApplicationTests {
 
 	@Test
 	void testQrCodeCryptoRoundTrip() throws Exception {
-		final var sourceData = "secret data transfer";
-		final var salt = "shared-salt";
-		final var otp = "654321";
+		// The payload is already encrypted by the browser; the server only handles QR image generation and reading.
+		final var encryptedPayload = "dtbqr1.AAAAAAAAAAAAAAAA.AAAAAAAAAAAAAAAAAAAAAA";
 
 		final var generateHeaders = new HttpHeaders();
 		generateHeaders.setContentType(MediaType.APPLICATION_JSON);
 
 		final var generateResponse = restTemplate.postForEntity(
 				"http://localhost:" + port + "/api/qrcode-crypto/generate",
-				new HttpEntity<>(Map.of("data", sourceData, "salt", salt, "otp", otp), generateHeaders),
+				new HttpEntity<>(Map.of("encryptedPayload", encryptedPayload), generateHeaders),
 				String.class
 		);
 
 		Assertions.assertThat(generateResponse.getStatusCode().is2xxSuccessful()).isTrue();
 		final var generateBody = JsonParserFactory.getJsonParser().parseMap(generateResponse.getBody());
-		final var encryptedPayload = String.valueOf(generateBody.get("encryptedPayload"));
 		final var qrCodeDataUrl = String.valueOf(generateBody.get("qrCodeDataUrl"));
 
-		Assertions.assertThat(encryptedPayload).startsWith("dtbqr1.");
 		Assertions.assertThat(qrCodeDataUrl).startsWith("data:image/png;base64,");
 
 		final var qrCodeBytes = Base64.getDecoder().decode(qrCodeDataUrl.substring(qrCodeDataUrl.indexOf(',') + 1));
@@ -77,8 +74,6 @@ class DevtoolbeltApplicationTests {
 				return "qrcode.png";
 			}
 		});
-		fileBody.add("salt", salt);
-		fileBody.add("otp", otp);
 
 		final var readHeaders = new HttpHeaders();
 		readHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
@@ -93,7 +88,6 @@ class DevtoolbeltApplicationTests {
 		final var readBody = JsonParserFactory.getJsonParser().parseMap(readResponse.getBody());
 
 		Assertions.assertThat(String.valueOf(readBody.get("encryptedPayload"))).isEqualTo(encryptedPayload);
-		Assertions.assertThat(String.valueOf(readBody.get("data"))).isEqualTo(sourceData);
 	}
 
 

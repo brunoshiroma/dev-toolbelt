@@ -27,15 +27,11 @@ public class QrCodeCryptoController {
     @PostMapping(value = "/api/qrcode-crypto/generate", consumes = MediaType.APPLICATION_JSON_VALUE)
     @ResponseBody
     public ResponseEntity<GenerateQrCodeResponse> generate(@RequestBody GenerateQrCodeRequest request) {
-        final var data = requireText(request.data(), "Data");
-        final var salt = requireText(request.salt(), "Salt");
-        final var otp = requireText(request.otp(), "OTP");
+        final var encryptedPayload = requireText(request.encryptedPayload(), "Encrypted payload");
 
         try {
-            final var payload = qrCodeCryptoService.encrypt(data, salt, otp);
-            final var qrCodeImage = Base64.getEncoder().encodeToString(qrCodeCryptoService.generateQrCode(payload));
-
-            return ResponseEntity.ok(new GenerateQrCodeResponse(payload, "data:image/png;base64," + qrCodeImage));
+            final var qrCodeImage = Base64.getEncoder().encodeToString(qrCodeCryptoService.generateQrCode(encryptedPayload));
+            return ResponseEntity.ok(new GenerateQrCodeResponse("data:image/png;base64," + qrCodeImage));
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage(), e);
         }
@@ -43,16 +39,12 @@ public class QrCodeCryptoController {
 
     @PostMapping(value = "/api/qrcode-crypto/read", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @ResponseBody
-    public ResponseEntity<ReadQrCodeResponse> read(@RequestParam("file") MultipartFile file,
-                                                   @RequestParam("salt") String salt,
-                                                   @RequestParam("otp") String otp) {
+    public ResponseEntity<ReadQrCodeResponse> read(@RequestParam("file") MultipartFile file) {
         requireFile(file);
 
         try {
-            final var payload = qrCodeCryptoService.readQrCode(file);
-            final var data = qrCodeCryptoService.decrypt(payload, requireText(salt, "Salt"), requireText(otp, "OTP"));
-
-            return ResponseEntity.ok(new ReadQrCodeResponse(payload, data));
+            final var encryptedPayload = qrCodeCryptoService.readQrCode(file);
+            return ResponseEntity.ok(new ReadQrCodeResponse(encryptedPayload));
         } catch (IllegalArgumentException e) {
             throw new ResponseStatusException(BAD_REQUEST, e.getMessage(), e);
         }
@@ -72,12 +64,12 @@ public class QrCodeCryptoController {
         }
     }
 
-    public record GenerateQrCodeRequest(String data, String salt, String otp) {
+    public record GenerateQrCodeRequest(String encryptedPayload) {
     }
 
-    public record GenerateQrCodeResponse(String encryptedPayload, String qrCodeDataUrl) {
+    public record GenerateQrCodeResponse(String qrCodeDataUrl) {
     }
 
-    public record ReadQrCodeResponse(String encryptedPayload, String data) {
+    public record ReadQrCodeResponse(String encryptedPayload) {
     }
 }
