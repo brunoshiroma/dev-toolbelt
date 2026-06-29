@@ -96,6 +96,7 @@
 </main>
 
 <script src="js/common.js"></script>
+<script src="js/qrcode.min.js"></script>
 <script>
     // ---------- Browser-side crypto (PBKDF2 + AES-GCM) ----------
 
@@ -150,6 +151,19 @@
         return new TextDecoder().decode(plaintext);
     }
 
+    // ---------- Browser-side QR code generation ----------
+
+    function generateQrCodeDataUrl(payload) {
+        const container = document.createElement('div');
+        new QRCode(container, {
+            text: payload,
+            width: 512,
+            height: 512,
+            correctLevel: QRCode.CorrectLevel.H
+        });
+        return container.querySelector('canvas').toDataURL('image/png');
+    }
+
     // ---------- UI functions ----------
 
     async function generateQrCode() {
@@ -166,15 +180,7 @@
         try {
             const encryptedPayload = await encryptData(dataField.value, saltField.value, otpField.value);
             payloadField.value = encryptedPayload;
-
-            const response = await fetch('/api/qrcode-crypto/generate', {
-                method: 'POST',
-                headers: { 'Accept': 'application/json', 'Content-Type': 'application/json' },
-                body: JSON.stringify({ encryptedPayload })
-            });
-
-            const data = await readResponseJson(response);
-            imageField.src = data.qrCodeDataUrl;
+            imageField.src = generateQrCodeDataUrl(encryptedPayload);
         } catch (error) {
             alert(error.message);
         }

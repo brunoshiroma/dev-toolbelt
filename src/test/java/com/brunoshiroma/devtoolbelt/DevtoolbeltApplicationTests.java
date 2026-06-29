@@ -1,5 +1,8 @@
 package com.brunoshiroma.devtoolbelt;
 
+import com.google.zxing.BarcodeFormat;
+import com.google.zxing.MultiFormatWriter;
+import com.google.zxing.client.j2se.MatrixToImageWriter;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,8 +18,7 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.server.LocalServerPort;
 
-import java.util.Base64;
-import java.util.Map;
+import java.io.ByteArrayOutputStream;
 
 @AutoConfigureTestRestTemplate
 @SpringBootTest(webEnvironment = WebEnvironment.RANDOM_PORT)
@@ -47,26 +49,15 @@ class DevtoolbeltApplicationTests {
 	}
 
 	@Test
-	void testQrCodeCryptoRoundTrip() throws Exception {
-		// The payload is already encrypted by the browser; the server only handles QR image generation and reading.
+	void testQrCodeCryptoRead() throws Exception {
+		// QR code generation happens in the browser; generate a test image directly with ZXing.
 		final var encryptedPayload = "dtbqr1.AAAAAAAAAAAAAAAA.AAAAAAAAAAAAAAAAAAAAAA";
 
-		final var generateHeaders = new HttpHeaders();
-		generateHeaders.setContentType(MediaType.APPLICATION_JSON);
+		final var bitMatrix = new MultiFormatWriter().encode(encryptedPayload, BarcodeFormat.QR_CODE, 512, 512);
+		final var out = new ByteArrayOutputStream();
+		MatrixToImageWriter.writeToStream(bitMatrix, "PNG", out);
+		final var qrCodeBytes = out.toByteArray();
 
-		final var generateResponse = restTemplate.postForEntity(
-				"http://localhost:" + port + "/api/qrcode-crypto/generate",
-				new HttpEntity<>(Map.of("encryptedPayload", encryptedPayload), generateHeaders),
-				String.class
-		);
-
-		Assertions.assertThat(generateResponse.getStatusCode().is2xxSuccessful()).isTrue();
-		final var generateBody = JsonParserFactory.getJsonParser().parseMap(generateResponse.getBody());
-		final var qrCodeDataUrl = String.valueOf(generateBody.get("qrCodeDataUrl"));
-
-		Assertions.assertThat(qrCodeDataUrl).startsWith("data:image/png;base64,");
-
-		final var qrCodeBytes = Base64.getDecoder().decode(qrCodeDataUrl.substring(qrCodeDataUrl.indexOf(',') + 1));
 		final var fileBody = new LinkedMultiValueMap<String, Object>();
 		fileBody.add("file", new ByteArrayResource(qrCodeBytes) {
 			@Override
@@ -86,7 +77,6 @@ class DevtoolbeltApplicationTests {
 
 		Assertions.assertThat(readResponse.getStatusCode().is2xxSuccessful()).isTrue();
 		final var readBody = JsonParserFactory.getJsonParser().parseMap(readResponse.getBody());
-
 		Assertions.assertThat(String.valueOf(readBody.get("encryptedPayload"))).isEqualTo(encryptedPayload);
 	}
 
