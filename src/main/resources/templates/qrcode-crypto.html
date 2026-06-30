@@ -88,7 +88,12 @@
                 <textarea id="qrcode-read-payload" disabled class="h-100 w-100"></textarea>
             </div>
             <div class="form-group">
-                <label for="qrcode-read-output">Data</label>
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label for="qrcode-read-output" class="mb-0">Data</label>
+                    <button onclick="copyQrCodeReadOutput();" type="button" class="btn btn-outline-secondary btn-sm">
+                        Copy to clipboard
+                    </button>
+                </div>
                 <textarea id="qrcode-read-output" disabled class="h-100 w-100"></textarea>
             </div>
         </div>
@@ -157,9 +162,9 @@
         const container = document.createElement('div');
         new QRCode(container, {
             text: payload,
-            width: 512,
-            height: 512,
-            correctLevel: QRCode.CorrectLevel.H
+            width: 2048,
+            height: 2048,
+            correctLevel: QRCode.CorrectLevel.L
         });
         return container.querySelector('canvas').toDataURL('image/png');
     }
@@ -315,6 +320,30 @@
 
     function setCameraStatus(text) {
         byId('qrcode-camera-status').textContent = text;
+    }
+
+    async function copyQrCodeReadOutput() {
+        const outputField = byId('qrcode-read-output');
+        const text = outputField.value;
+
+        if (!text) {
+            alert('No output to copy yet');
+            return;
+        }
+
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                outputField.disabled = false;
+                outputField.select();
+                document.execCommand('copy');
+                outputField.disabled = true;
+                window.getSelection().removeAllRanges();
+            }
+        } catch (error) {
+            alert('Could not copy output: ' + error.message);
+        }
     }
 
 </script>
