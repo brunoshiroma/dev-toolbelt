@@ -47,5 +47,5 @@ class DevtoolbeltApplicationTests {
 		Assertions.assertThat(result.getStatusCode().is2xxSuccessful()).isTrue();
 		Assertions.assertThat(result.getBody()).contains("QR code crypto data transfer", "Generate QR code", "Read QR code");
 	}
-	
+
 }
