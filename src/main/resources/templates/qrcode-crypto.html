@@ -198,15 +198,18 @@
             return;
         }
 
-        const formData = new FormData();
-        formData.append('file', fileField.files[0]);
-
+        let imageBitmap;
         try {
-            const encryptedPayload = await readQrCodePayload(formData);
+            imageBitmap = await createImageBitmap(fileField.files[0]);
+            const encryptedPayload = await readQrCodePayload(imageBitmap);
             payloadField.value = encryptedPayload;
             outputField.value = await decryptData(encryptedPayload, saltField.value, otpField.value);
         } catch (error) {
             alert(error.message);
+        } finally {
+            if (imageBitmap && imageBitmap.close) {
+                imageBitmap.close();
+            }
         }
     }
 
@@ -271,49 +274,49 @@
         const payloadField = byId('qrcode-read-payload');
         const outputField = byId('qrcode-read-output');
 
-        canvas.toBlob(async (blob) => {
-            const formData = new FormData();
-            formData.append('file', blob, 'frame.png');
-
-            try {
-                const encryptedPayload = await readQrCodePayload(formData);
+        try {
+            const encryptedPayload = await readQrCodePayload(canvas);
+            stopCamera();
+            setCameraStatus('QR code scanned successfully.');
+            payloadField.value = encryptedPayload;
+            outputField.value = await decryptData(encryptedPayload, saltField.value, otpField.value);
+        } catch (error) {
+            if (!error.message.includes('Unable to find a readable QR code')) {
                 stopCamera();
-                setCameraStatus('QR code scanned successfully.');
-                payloadField.value = encryptedPayload;
-                outputField.value = await decryptData(encryptedPayload, saltField.value, otpField.value);
-            } catch (error) {
-                if (!error.message.includes('Unable to find a readable QR code')) {
-                    stopCamera();
-                    setCameraStatus('');
-                    alert(error.message);
-                }
+                setCameraStatus('');
+                alert(error.message);
             }
-        }, 'image/png');
+        }
     }
 
-    async function readQrCodePayload(formData) {
-        const response = await fetch('/api/qrcode-crypto/read', {
-            method: 'POST',
-            headers: { 'Accept': 'application/json' },
-            body: formData
-        });
-        const data = await readResponseJson(response);
-        return data.encryptedPayload;
+    let qrCodeDetector = null;
+
+    function getQrCodeDetector() {
+        if (!('BarcodeDetector' in window)) {
+            throw new Error('QR code reading is not supported in this browser.');
+        }
+
+        if (!qrCodeDetector) {
+            qrCodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+        }
+
+        return qrCodeDetector;
+    }
+
+    async function readQrCodePayload(source) {
+        const detector = getQrCodeDetector();
+        const barcodes = await detector.detect(source);
+        if (!barcodes.length || !barcodes[0].rawValue) {
+            throw new Error('Unable to find a readable QR code');
+        }
+
+        return barcodes[0].rawValue;
     }
 
     function setCameraStatus(text) {
         byId('qrcode-camera-status').textContent = text;
     }
 
-    async function readResponseJson(response) {
-        const responseText = await response.text();
-        const data = responseText ? JSON.parse(responseText) : {};
-        if (!response.ok) {
-            throw new Error(data.message || 'Unexpected error');
-        }
-
-        return data;
-    }
 </script>
 
 <meta th:replace="~{fragments/base_html_bottom.html}">
