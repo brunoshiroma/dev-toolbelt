@@ -234,7 +234,7 @@
             byId('btn-stop-camera').disabled = false;
             setCameraStatus('Scanning for QR code…');
 
-            cameraScanInterval = setInterval(scanCameraFrame, 1000);
+            cameraScanInterval = setInterval(scanCameraFrame, 300);
         } catch (error) {
             alert('Could not access camera: ' + error.message);
         }
@@ -293,7 +293,7 @@
 
     function getQrCodeDetector() {
         if (!('BarcodeDetector' in window)) {
-            throw new Error('QR code reading is not supported in this browser.');
+            throw new Error('QR code reading is not supported in this browser. Use a Chromium-based browser such as Chrome or Edge.');
         }
 
         if (!qrCodeDetector) {
