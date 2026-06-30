@@ -1,0 +1,351 @@
+<meta th:replace="~{fragments/base_html_top.html}">
+<h1>QR code crypto data transfer</h1>
+<main role="main" class="container-fluid pt-3">
+    <div class="row">
+        <div class="col-lg-6">
+            <h2>Create QR code (Mostly done by copilot)</h2>
+            <div class="form-group">
+                <label for="qrcode-create-data">Data</label>
+                <textarea id="qrcode-create-data" class="h-100 w-100"></textarea>
+            </div>
+            <div class="form-group">
+                <label for="qrcode-create-salt">Salt</label>
+                <input id="qrcode-create-salt" class="w-100">
+            </div>
+            <div class="form-group">
+                <label for="qrcode-create-otp">One Time Password (OTP)</label>
+                <input id="qrcode-create-otp" class="w-100">
+            </div>
+            <div class="form-group">
+                <label for="qrcode-create-payload">Encrypted payload</label>
+                <textarea id="qrcode-create-payload" disabled class="h-100 w-100"></textarea>
+            </div>
+            <div class="row">
+                <div class="col">
+                    <button onclick="generateQrCode();" type="button" class="btn btn-primary m-1">
+                        Generate QR code
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <img id="qrcode-create-image" alt="Generated QR code" class="img-fluid border">
+            </div>
+        </div>
+        <div class="col-lg-6">
+            <h2>Read QR code</h2>
+            <div class="form-group">
+                <label for="qrcode-read-salt">Salt</label>
+                <input id="qrcode-read-salt" class="w-100">
+            </div>
+            <div class="form-group">
+                <label for="qrcode-read-otp">One Time Password (OTP)</label>
+                <input id="qrcode-read-otp" class="w-100">
+            </div>
+
+            <ul class="nav nav-tabs mt-2" id="qrcode-read-tabs" role="tablist">
+                <li class="nav-item">
+                    <a class="nav-link active" id="tab-camera" data-toggle="tab" href="#pane-camera" role="tab">Camera</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" id="tab-file" data-toggle="tab" href="#pane-file" role="tab">File</a>
+                </li>
+            </ul>
+            <div class="tab-content border border-top-0 p-2 mb-2">
+                <div class="tab-pane fade show active" id="pane-camera" role="tabpanel">
+                    <div class="form-group mt-2">
+                        <video id="qrcode-camera-video" autoplay playsinline muted class="w-100 border" style="display:none;max-height:300px;background:#000;"></video>
+                        <canvas id="qrcode-camera-canvas" style="display:none;"></canvas>
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <button onclick="startCamera();" id="btn-start-camera" type="button" class="btn btn-primary m-1">
+                                Start Camera
+                            </button>
+                            <button onclick="stopCamera();" id="btn-stop-camera" type="button" class="btn btn-secondary m-1" disabled>
+                                Stop Camera
+                            </button>
+                        </div>
+                    </div>
+                    <p id="qrcode-camera-status" class="text-muted small mt-1"></p>
+                </div>
+                <div class="tab-pane fade" id="pane-file" role="tabpanel">
+                    <div class="form-group mt-2">
+                        <label for="qrcode-read-file">QR code image</label>
+                        <input id="qrcode-read-file" type="file" accept="image/png,image/jpeg,image/webp" class="w-100">
+                    </div>
+                    <div class="row">
+                        <div class="col">
+                            <button onclick="readQrCodeFromFile();" type="button" class="btn btn-primary m-1">
+                                Read QR code
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="qrcode-read-payload">Encrypted payload</label>
+                <textarea id="qrcode-read-payload" disabled class="h-100 w-100"></textarea>
+            </div>
+            <div class="form-group">
+                <div class="d-flex align-items-center justify-content-between mb-1">
+                    <label for="qrcode-read-output" class="mb-0">Data</label>
+                    <button onclick="copyQrCodeReadOutput();" type="button" class="btn btn-outline-secondary btn-sm">
+                        Copy to clipboard
+                    </button>
+                </div>
+                <textarea id="qrcode-read-output" disabled class="h-100 w-100"></textarea>
+            </div>
+        </div>
+    </div>
+</main>
+
+<script src="js/common.js"></script>
+<script src="js/qrcode.min.js"></script>
+<script>
+    // ---------- Browser-side crypto (PBKDF2 + AES-GCM) ----------
+
+    function b64urlEncode(bytes) {
+        return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+            .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
+    }
+
+    function b64urlDecode(str) {
+        const base64 = str.replace(/-/g, '+').replace(/_/g, '/');
+        return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
+    }
+
+    async function deriveKey(otp, salt) {
+        const enc = new TextEncoder();
+        const passwordKey = await crypto.subtle.importKey(
+            'raw', enc.encode(otp), { name: 'PBKDF2' }, false, ['deriveKey']
+        );
+        return crypto.subtle.deriveKey(
+            { name: 'PBKDF2', salt: enc.encode(salt), iterations: 65536, hash: 'SHA-256' },
+            passwordKey,
+            { name: 'AES-GCM', length: 256 },
+            false,
+            ['encrypt', 'decrypt']
+        );
+    }
+
+    async function encryptData(data, salt, otp) {
+        const key = await deriveKey(otp, salt);
+        const iv = crypto.getRandomValues(new Uint8Array(12));
+        const ciphertext = await crypto.subtle.encrypt(
+            { name: 'AES-GCM', iv, tagLength: 128 },
+            key,
+            new TextEncoder().encode(data)
+        );
+        return 'dtbqr1.' + b64urlEncode(iv) + '.' + b64urlEncode(ciphertext);
+    }
+
+    async function decryptData(payload, salt, otp) {
+        const parts = payload.split('.');
+        if (parts.length !== 3 || parts[0] !== 'dtbqr1') {
+            throw new Error('Invalid QR code payload');
+        }
+        const key = await deriveKey(otp, salt);
+        const iv = b64urlDecode(parts[1]);
+        const ciphertext = b64urlDecode(parts[2]);
+        const plaintext = await crypto.subtle.decrypt(
+            { name: 'AES-GCM', iv, tagLength: 128 },
+            key,
+            ciphertext
+        );
+        return new TextDecoder().decode(plaintext);
+    }
+
+    // ---------- Browser-side QR code generation ----------
+
+    function generateQrCodeDataUrl(payload) {
+        const container = document.createElement('div');
+        new QRCode(container, {
+            text: payload,
+            width: 2048,
+            height: 2048,
+            correctLevel: QRCode.CorrectLevel.L
+        });
+        return container.querySelector('canvas').toDataURL('image/png');
+    }
+
+    // ---------- UI functions ----------
+
+    async function generateQrCode() {
+        const dataField = byId('qrcode-create-data');
+        const saltField = byId('qrcode-create-salt');
+        const otpField = byId('qrcode-create-otp');
+        const payloadField = byId('qrcode-create-payload');
+        const imageField = byId('qrcode-create-image');
+
+        if (!dataField.value.trim()) { alert('Data is required'); return; }
+        if (!saltField.value.trim()) { alert('Salt is required'); return; }
+        if (!otpField.value.trim()) { alert('One Time Password is required'); return; }
+
+        try {
+            const encryptedPayload = await encryptData(dataField.value, saltField.value, otpField.value);
+            payloadField.value = encryptedPayload;
+            imageField.src = generateQrCodeDataUrl(encryptedPayload);
+        } catch (error) {
+            alert(error.message);
+        }
+    }
+
+    async function readQrCodeFromFile() {
+        const fileField = byId('qrcode-read-file');
+        const saltField = byId('qrcode-read-salt');
+        const otpField = byId('qrcode-read-otp');
+        const payloadField = byId('qrcode-read-payload');
+        const outputField = byId('qrcode-read-output');
+
+        if (!fileField.files.length) {
+            alert('Choose a QR code image first');
+            return;
+        }
+
+        let imageBitmap;
+        try {
+            imageBitmap = await createImageBitmap(fileField.files[0]);
+            const encryptedPayload = await readQrCodePayload(imageBitmap);
+            payloadField.value = encryptedPayload;
+            outputField.value = await decryptData(encryptedPayload, saltField.value, otpField.value);
+        } catch (error) {
+            alert(error.message);
+        } finally {
+            if (imageBitmap && imageBitmap.close) {
+                imageBitmap.close();
+            }
+        }
+    }
+
+    let cameraStream = null;
+    let cameraScanInterval = null;
+
+    async function startCamera() {
+        if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+            alert('Camera access is not supported by this browser.');
+            return;
+        }
+
+        try {
+            cameraStream = await navigator.mediaDevices.getUserMedia({
+                video: { facingMode: 'environment' }
+            });
+
+            const video = byId('qrcode-camera-video');
+            video.srcObject = cameraStream;
+            video.style.display = 'block';
+            byId('btn-start-camera').disabled = true;
+            byId('btn-stop-camera').disabled = false;
+            setCameraStatus('Scanning for QR code…');
+
+            cameraScanInterval = setInterval(scanCameraFrame, 300);
+        } catch (error) {
+            alert('Could not access camera: ' + error.message);
+        }
+    }
+
+    function stopCamera() {
+        clearInterval(cameraScanInterval);
+        cameraScanInterval = null;
+
+        if (cameraStream) {
+            cameraStream.getTracks().forEach(t => t.stop());
+            cameraStream = null;
+        }
+
+        const video = byId('qrcode-camera-video');
+        video.srcObject = null;
+        video.style.display = 'none';
+        byId('btn-start-camera').disabled = false;
+        byId('btn-stop-camera').disabled = true;
+        setCameraStatus('');
+    }
+
+    async function scanCameraFrame() {
+        const video = byId('qrcode-camera-video');
+        const canvas = byId('qrcode-camera-canvas');
+
+        if (!video.videoWidth || !video.videoHeight) {
+            return;
+        }
+
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        canvas.getContext('2d').drawImage(video, 0, 0);
+
+        const saltField = byId('qrcode-read-salt');
+        const otpField = byId('qrcode-read-otp');
+        const payloadField = byId('qrcode-read-payload');
+        const outputField = byId('qrcode-read-output');
+
+        try {
+            const encryptedPayload = await readQrCodePayload(canvas);
+            stopCamera();
+            setCameraStatus('QR code scanned successfully.');
+            payloadField.value = encryptedPayload;
+            outputField.value = await decryptData(encryptedPayload, saltField.value, otpField.value);
+        } catch (error) {
+            if (!error.message.includes('Unable to find a readable QR code')) {
+                stopCamera();
+                setCameraStatus('');
+                alert(error.message);
+            }
+        }
+    }
+
+    let qrCodeDetector = null;
+
+    function getQrCodeDetector() {
+        if (!('BarcodeDetector' in window)) {
+            throw new Error('QR code reading is not supported in this browser. Use a Chromium-based browser such as Chrome or Edge.');
+        }
+
+        if (!qrCodeDetector) {
+            qrCodeDetector = new BarcodeDetector({ formats: ['qr_code'] });
+        }
+
+        return qrCodeDetector;
+    }
+
+    async function readQrCodePayload(source) {
+        const detector = getQrCodeDetector();
+        const barcodes = await detector.detect(source);
+        if (!barcodes.length || !barcodes[0].rawValue) {
+            throw new Error('Unable to find a readable QR code');
+        }
+
+        return barcodes[0].rawValue;
+    }
+
+    function setCameraStatus(text) {
+        byId('qrcode-camera-status').textContent = text;
+    }
+
+    async function copyQrCodeReadOutput() {
+        const outputField = byId('qrcode-read-output');
+        const text = outputField.value;
+
+        if (!text) {
+            alert('No output to copy yet');
+            return;
+        }
+
+        try {
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                await navigator.clipboard.writeText(text);
+            } else {
+                outputField.disabled = false;
+                outputField.select();
+                document.execCommand('copy');
+                outputField.disabled = true;
+                window.getSelection().removeAllRanges();
+            }
+        } catch (error) {
+            alert('Could not copy output: ' + error.message);
+        }
+    }
+
+</script>
+
+<meta th:replace="~{fragments/base_html_bottom.html}">
