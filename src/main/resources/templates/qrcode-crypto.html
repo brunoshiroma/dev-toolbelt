@@ -106,7 +106,12 @@
     // ---------- Browser-side crypto (PBKDF2 + AES-GCM) ----------
 
     function b64urlEncode(bytes) {
-        return btoa(String.fromCharCode(...new Uint8Array(bytes)))
+        const array = new Uint8Array(bytes);
+        let binary = '';
+        for (let i = 0; i < array.length; i++) {
+            binary += String.fromCharCode(array[i]);
+        }
+        return btoa(binary)
             .replace(/\+/g, '-').replace(/\//g, '_').replace(/=/g, '');
     }
 
