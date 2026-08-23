@@ -13,8 +13,8 @@
                 <input id="qrcode-create-salt" class="w-100">
             </div>
             <div class="form-group">
-                <label for="qrcode-create-otp">One Time Password (OTP)</label>
-                <input id="qrcode-create-otp" class="w-100">
+                <label for="qrcode-create-totp-secret">TOTP Secret</label>
+                <input id="qrcode-create-totp-secret" class="w-100">
             </div>
             <div class="form-group">
                 <label for="qrcode-create-payload">Encrypted payload</label>
@@ -38,8 +38,8 @@
                 <input id="qrcode-read-salt" class="w-100">
             </div>
             <div class="form-group">
-                <label for="qrcode-read-otp">One Time Password (OTP)</label>
-                <input id="qrcode-read-otp" class="w-100">
+                <label for="qrcode-read-totp-secret">TOTP Secret</label>
+                <input id="qrcode-read-totp-secret" class="w-100">
             </div>
 
             <ul class="nav nav-tabs mt-2" id="qrcode-read-tabs" role="tablist">
@@ -115,10 +115,75 @@
         return Uint8Array.from(atob(base64), c => c.charCodeAt(0));
     }
 
-    async function deriveKey(otp, salt) {
+    function decodeBase32(input) {
+        const alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ234567';
+        const normalized = input.toUpperCase().replace(/[\s-]/g, '').replace(/=+$/, '');
+        if (!normalized || /[^A-Z2-7]/.test(normalized)) {
+            return null;
+        }
+
+        let bits = '';
+        for (const char of normalized) {
+            const index = alphabet.indexOf(char);
+            if (index < 0) {
+                return null;
+            }
+            bits += index.toString(2).padStart(5, '0');
+        }
+
+        const bytes = [];
+        for (let i = 0; i + 8 <= bits.length; i += 8) {
+            bytes.push(parseInt(bits.slice(i, i + 8), 2));
+        }
+
+        return new Uint8Array(bytes);
+    }
+
+    function parseTotpSecret(secret) {
+        const trimmed = secret.trim();
+        const base32 = decodeBase32(trimmed);
+        if (base32 && base32.length) {
+            return base32;
+        }
+
+        return new TextEncoder().encode(trimmed);
+    }
+
+    function getCurrentTotpCounter() {
+        return Math.floor(Date.now() / 1000 / 30);
+    }
+
+    async function generateTotpCode(secret, counter) {
+        const secretBytes = parseTotpSecret(secret);
+        const key = await crypto.subtle.importKey(
+            'raw',
+            secretBytes,
+            { name: 'HMAC', hash: 'SHA-1' },
+            false,
+            ['sign']
+        );
+
+        const counterBytes = new Uint8Array(8);
+        let value = BigInt(counter);
+        for (let i = 7; i >= 0; i--) {
+            counterBytes[i] = Number(value & 0xffn);
+            value >>= 8n;
+        }
+
+        const hmac = new Uint8Array(await crypto.subtle.sign('HMAC', key, counterBytes));
+        const offset = hmac[hmac.length - 1] & 0x0f;
+        const binary = ((hmac[offset] & 0x7f) << 24)
+            | ((hmac[offset + 1] & 0xff) << 16)
+            | ((hmac[offset + 2] & 0xff) << 8)
+            | (hmac[offset + 3] & 0xff);
+
+        return String(binary % 1000000).padStart(6, '0');
+    }
+
+    async function deriveKey(password, salt) {
         const enc = new TextEncoder();
         const passwordKey = await crypto.subtle.importKey(
-            'raw', enc.encode(otp), { name: 'PBKDF2' }, false, ['deriveKey']
+            'raw', enc.encode(password), { name: 'PBKDF2' }, false, ['deriveKey']
         );
         return crypto.subtle.deriveKey(
             { name: 'PBKDF2', salt: enc.encode(salt), iterations: 65536, hash: 'SHA-256' },
@@ -129,25 +194,46 @@
         );
     }
 
-    async function encryptData(data, salt, otp) {
-        const key = await deriveKey(otp, salt);
+    async function encryptData(data, salt, totpSecret) {
+        const counter = getCurrentTotpCounter();
+        const totpCode = await generateTotpCode(totpSecret, counter);
+        const key = await deriveKey(totpCode, salt);
         const iv = crypto.getRandomValues(new Uint8Array(12));
         const ciphertext = await crypto.subtle.encrypt(
             { name: 'AES-GCM', iv, tagLength: 128 },
             key,
             new TextEncoder().encode(data)
         );
-        return 'dtbqr1.' + b64urlEncode(iv) + '.' + b64urlEncode(ciphertext);
+        return 'dtbqr2.' + counter.toString(36) + '.' + b64urlEncode(iv) + '.' + b64urlEncode(ciphertext);
     }
 
-    async function decryptData(payload, salt, otp) {
+    async function decryptData(payload, salt, totpSecret) {
         const parts = payload.split('.');
-        if (parts.length !== 3 || parts[0] !== 'dtbqr1') {
+        if (parts.length === 3 && parts[0] === 'dtbqr1') {
+            const key = await deriveKey(totpSecret, salt);
+            const iv = b64urlDecode(parts[1]);
+            const ciphertext = b64urlDecode(parts[2]);
+            const plaintext = await crypto.subtle.decrypt(
+                { name: 'AES-GCM', iv, tagLength: 128 },
+                key,
+                ciphertext
+            );
+            return new TextDecoder().decode(plaintext);
+        }
+
+        if (parts.length !== 4 || parts[0] !== 'dtbqr2') {
             throw new Error('Invalid QR code payload');
         }
-        const key = await deriveKey(otp, salt);
-        const iv = b64urlDecode(parts[1]);
-        const ciphertext = b64urlDecode(parts[2]);
+
+        const counter = parseInt(parts[1], 36);
+        if (!Number.isFinite(counter)) {
+            throw new Error('Invalid QR code payload counter');
+        }
+
+        const totpCode = await generateTotpCode(totpSecret, counter);
+        const key = await deriveKey(totpCode, salt);
+        const iv = b64urlDecode(parts[2]);
+        const ciphertext = b64urlDecode(parts[3]);
         const plaintext = await crypto.subtle.decrypt(
             { name: 'AES-GCM', iv, tagLength: 128 },
             key,
@@ -174,16 +260,16 @@
     async function generateQrCode() {
         const dataField = byId('qrcode-create-data');
         const saltField = byId('qrcode-create-salt');
-        const otpField = byId('qrcode-create-otp');
+        const secretField = byId('qrcode-create-totp-secret');
         const payloadField = byId('qrcode-create-payload');
         const imageField = byId('qrcode-create-image');
 
         if (!dataField.value.trim()) { alert('Data is required'); return; }
         if (!saltField.value.trim()) { alert('Salt is required'); return; }
-        if (!otpField.value.trim()) { alert('One Time Password is required'); return; }
+        if (!secretField.value.trim()) { alert('TOTP secret is required'); return; }
 
         try {
-            const encryptedPayload = await encryptData(dataField.value, saltField.value, otpField.value);
+            const encryptedPayload = await encryptData(dataField.value, saltField.value, secretField.value);
             payloadField.value = encryptedPayload;
             imageField.src = generateQrCodeDataUrl(encryptedPayload);
         } catch (error) {
@@ -194,7 +280,7 @@
     async function readQrCodeFromFile() {
         const fileField = byId('qrcode-read-file');
         const saltField = byId('qrcode-read-salt');
-        const otpField = byId('qrcode-read-otp');
+        const secretField = byId('qrcode-read-totp-secret');
         const payloadField = byId('qrcode-read-payload');
         const outputField = byId('qrcode-read-output');
 
@@ -208,7 +294,7 @@
             imageBitmap = await createImageBitmap(fileField.files[0]);
             const encryptedPayload = await readQrCodePayload(imageBitmap);
             payloadField.value = encryptedPayload;
-            outputField.value = await decryptData(encryptedPayload, saltField.value, otpField.value);
+            outputField.value = await decryptData(encryptedPayload, saltField.value, secretField.value);
         } catch (error) {
             alert(error.message);
         } finally {
@@ -275,7 +361,7 @@
         canvas.getContext('2d').drawImage(video, 0, 0);
 
         const saltField = byId('qrcode-read-salt');
-        const otpField = byId('qrcode-read-otp');
+        const secretField = byId('qrcode-read-totp-secret');
         const payloadField = byId('qrcode-read-payload');
         const outputField = byId('qrcode-read-output');
 
@@ -284,7 +370,7 @@
             stopCamera();
             setCameraStatus('QR code scanned successfully.');
             payloadField.value = encryptedPayload;
-            outputField.value = await decryptData(encryptedPayload, saltField.value, otpField.value);
+            outputField.value = await decryptData(encryptedPayload, saltField.value, secretField.value);
         } catch (error) {
             if (!error.message.includes('Unable to find a readable QR code')) {
                 stopCamera();
