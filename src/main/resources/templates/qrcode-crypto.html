@@ -13,7 +13,7 @@
                 <input id="qrcode-create-salt" class="w-100">
             </div>
             <div class="form-group">
-                <label for="qrcode-create-totp-secret">TOTP Secret</label>
+                <label for="qrcode-create-totp-secret">TOTP Secret (Base32 - RFC6238)</label>
                 <input id="qrcode-create-totp-secret" class="w-100">
             </div>
             <div class="form-group">
@@ -38,7 +38,7 @@
                 <input id="qrcode-read-salt" class="w-100">
             </div>
             <div class="form-group">
-                <label for="qrcode-read-totp-secret">TOTP Secret</label>
+                <label for="qrcode-read-totp-secret">TOTP Secret (Base32 - RFC6238)</label>
                 <input id="qrcode-read-totp-secret" class="w-100">
             </div>
 
@@ -144,18 +144,23 @@
         return new Uint8Array(bytes);
     }
 
+    const RFC6238_T0_SECONDS = 0;
+    const RFC6238_TIME_STEP_SECONDS = 30;
+    const RFC6238_DIGITS = 6;
+
     function parseTotpSecret(secret) {
         const trimmed = secret.trim();
         const base32 = decodeBase32(trimmed);
-        if (base32 && base32.length) {
-            return base32;
+        if (!base32 || !base32.length) {
+            throw new Error('Invalid TOTP secret. RFC6238 secret must be Base32 encoded.');
         }
 
-        return new TextEncoder().encode(trimmed);
+        return base32;
     }
 
     function getCurrentTotpCounter() {
-        return Math.floor(Date.now() / 1000 / 30);
+        const unixSeconds = Math.floor(Date.now() / 1000);
+        return Math.floor((unixSeconds - RFC6238_T0_SECONDS) / RFC6238_TIME_STEP_SECONDS);
     }
 
     async function generateTotpCode(secret, counter) {
@@ -182,7 +187,7 @@
             | ((hmac[offset + 2] & 0xff) << 8)
             | (hmac[offset + 3] & 0xff);
 
-        return String(binary % 1000000).padStart(6, '0');
+        return String(binary % (10 ** RFC6238_DIGITS)).padStart(RFC6238_DIGITS, '0');
     }
 
     async function deriveKey(password, salt) {
