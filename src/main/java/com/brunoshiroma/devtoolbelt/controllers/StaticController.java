@@ -53,6 +53,14 @@ public class StaticController extends AbstractController {
         return "url-encode.html";
     }
 
+    @GetMapping("/qrcode-crypto")
+    public String qrCodeCrypto(Model model){
+        setUpModel(model);
+        model.addAttribute(HTML_TITLE, " - QR code crypto");
+        model.addAttribute(HTML_DESCRIPTION, "Encrypt data with salt and OTP, create QR codes, and read QR codes.");
+        return "qrcode-crypto.html";
+    }
+
     @GetMapping("/offline")
     public String offline(Model model){
         setUpModel(model);

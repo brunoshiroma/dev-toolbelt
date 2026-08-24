@@ -9,6 +9,7 @@
         <a class="nav-item nav-link" th:classappend="${#ctx.getExchange().getRequest().getRequestPath() == '/ip'} ? active : ''" href="/ip">IP</a>
             <a class="nav-item nav-link" th:classappend="${#ctx.getExchange().getRequest().getRequestPath() == '/base64'} ? active : ''" href="/base64">Base64</a>
             <a class="nav-item nav-link" th:classappend="${#ctx.getExchange().getRequest().getRequestPath() == '/url-encode'} ? active : ''" href="/url-encode">URL Encode</a>
+            <a class="nav-item nav-link" th:classappend="${#ctx.getExchange().getRequest().getRequestPath() == '/qrcode-crypto'} ? active : ''" href="/qrcode-crypto">QR Code Crypto</a>
             <a class="nav-item nav-link" th:classappend="${#ctx.getExchange().getRequest().getRequestPath() == '/sha'} ? active : ''" href="/sha">SHA</a>
             <a class="nav-item nav-link" th:classappend="${#ctx.getExchange().getRequest().getRequestPath() == '/password'} ? active : ''" href="/password">Password</a>
         </div>
